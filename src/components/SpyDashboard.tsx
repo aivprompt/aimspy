@@ -127,6 +127,11 @@ export const SpyDashboard: React.FC = () => {
     const updatedProfile = gameService.awardPoints(profile, points, `Deep scanned ${coin.symbol}`);
     setProfile(updatedProfile);
     
+    // Reset scanning state after 2 seconds
+    setTimeout(() => {
+      setSelectedCoin(null);
+    }, 2000);
+    
     toast({
       title: "🔍 Deep Scan Complete",
       description: `Analyzed ${coin.symbol}. +${points} Spy Points!`,
