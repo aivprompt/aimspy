@@ -36,11 +36,11 @@ export class MemeSpyAPI {
       
       if (!data.pairs) return [];
       
-      // Filter for new meme coins (< 7 days old, < $10M market cap)
+      // Filter for new meme coins (< 1 day old, < $1M market cap)
       const filteredPairs = data.pairs.filter((pair: any) => {
         const ageInSeconds = (Date.now() - (pair.pairCreatedAt || 0)) / 1000;
         const ageInDays = ageInSeconds / 86400;
-        return ageInDays < 7 && (pair.fdv || 0) < 10000000 && pair.chainId === 'solana';
+        return ageInDays < 1 && (pair.fdv || 0) < 1000000 && pair.chainId === 'solana';
       });
 
       const coins: MemeCoin[] = [];

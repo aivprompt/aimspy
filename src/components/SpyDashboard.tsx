@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { SpyCard } from '@/components/ui/spy-card';
+import { LatestMints } from '@/components/ui/latest-mints';
 import { useToast } from '@/hooks/use-toast';
 import { MemeSpyAPI } from '@/services/api';
 import { GameService } from '@/services/game';
@@ -24,7 +25,8 @@ import {
   AlertTriangle,
   RefreshCw,
   Pin,
-  PinOff
+  PinOff,
+  Zap
 } from 'lucide-react';
 
 export const SpyDashboard: React.FC = () => {
@@ -165,7 +167,7 @@ export const SpyDashboard: React.FC = () => {
       const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
       const unpinnedNewCoins = enrichedCoins.filter(coin => !pinnedCoins.has(coin.address));
       
-      const slotsToFill = 6 - pinnedCoinList.length;
+      const slotsToFill = 3 - pinnedCoinList.length;
       const finalCoins = [...pinnedCoinList, ...unpinnedNewCoins.slice(0, slotsToFill)];
       
       setCoins(finalCoins);
@@ -186,6 +188,46 @@ export const SpyDashboard: React.FC = () => {
     }
   };
 
+  const handleSelectCoinFromMints = (selectedCoin: MemeCoin) => {
+    // Add selected coin to main coins array if not already present
+    const isAlreadyInCoins = coins.some(coin => coin.address === selectedCoin.address);
+    
+    if (!isAlreadyInCoins) {
+      // Add investment recommendation
+      const enrichedCoin = {
+        ...selectedCoin,
+        recommendation: gameService.calculateInvestmentRecommendation(
+          selectedCoin, 
+          profile.cashflow, 
+          profile.riskTolerance
+        )
+      };
+      
+      // Replace oldest unpinned coin or add if space available
+      const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
+      const unpinnedCoins = coins.filter(coin => !pinnedCoins.has(coin.address));
+      
+      if (pinnedCoinList.length < 3) {
+        // Add to empty slot
+        setCoins([...coins, enrichedCoin]);
+      } else {
+        // Replace oldest unpinned coin
+        const newUnpinnedCoins = unpinnedCoins.slice(0, -1);
+        setCoins([...pinnedCoinList, enrichedCoin, ...newUnpinnedCoins]);
+      }
+      
+      toast({
+        title: "🎯 Target Added",
+        description: `${selectedCoin.symbol} added to your targets`,
+      });
+    } else {
+      toast({
+        title: "ℹ️ Already Tracked",
+        description: `${selectedCoin.symbol} is already in your targets`,
+      });
+    }
+  };
+
   const formatMoney = (amount: number) => {
     if (amount >= 1000000) return `$${(amount / 1000000).toFixed(2)}M`;
     if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
@@ -197,18 +239,22 @@ export const SpyDashboard: React.FC = () => {
     return labels[value - 1] || 'Medium';
   };
 
-  // Show top 6 targets: pinned coins first, then best unpinned coins
+  // Show top 3 targets: pinned coins first, then best unpinned coins
   const displayCoins = useMemo(() => {
-    console.log('Total coins available:', coins.length);
     const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
     const unpinnedCoins = coins
       .filter(coin => !pinnedCoins.has(coin.address))
       .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
     
-    const result = [...pinnedCoinList, ...unpinnedCoins].slice(0, 6);
-    console.log('Display coins result:', result.length, 'coins');
-    return result;
+    return [...pinnedCoinList, ...unpinnedCoins].slice(0, 3);
   }, [coins, pinnedCoins]);
+
+  // Latest 20 minted coins (sorted by newest first)
+  const latestCoins = useMemo(() => {
+    return [...coins]
+      .sort((a, b) => a.age - b.age) // Newest first (smaller age)
+      .slice(0, 20);
+  }, [coins]);
 
   const topCoins = displayCoins
     .filter(c => c.recommendation?.shouldInvest)
@@ -385,12 +431,12 @@ export const SpyDashboard: React.FC = () => {
       {displayCoins.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold flex items-center gap-2">
-                <Target className="h-6 w-6 text-spy-green" />
-                Top 6 Targets
-              </h2>
-              <Badge variant="outline">{displayCoins.length}/6 slots</Badge>
+              <div className="flex items-center gap-2">
+                <h2 className="text-2xl font-bold flex items-center gap-2">
+                  <Target className="h-6 w-6 text-spy-green" />
+                  Top 3 Targets
+                </h2>
+                <Badge variant="outline">{displayCoins.length}/3 slots</Badge>
               {pinnedCoins.size > 0 && (
                 <Badge className="spy-gradient">
                   <Pin className="h-3 w-3 mr-1" />
@@ -414,7 +460,7 @@ export const SpyDashboard: React.FC = () => {
           </div>
           
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayCoins.slice(0, 6).map(coin => (
+            {displayCoins.slice(0, 3).map(coin => (
               <SpyCard
                 key={coin.address}
                 coin={coin}
@@ -425,6 +471,23 @@ export const SpyDashboard: React.FC = () => {
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Latest Mints */}
+      {latestCoins.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold flex items-center gap-2 mb-4">
+            <Zap className="h-6 w-6 text-spy-yellow animate-pulse" />
+            Fresh Mints
+            <Badge variant="outline">Live Feed</Badge>
+          </h2>
+          
+          <LatestMints
+            coins={latestCoins}
+            onSelectCoin={handleSelectCoinFromMints}
+            className="max-w-full"
+          />
         </div>
       )}
 
