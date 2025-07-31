@@ -8,33 +8,52 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Spy HQ Theme - Dark Blues & Greens */
+    --background: 220 15% 8%;
+    --foreground: 60 30% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 15% 12%;
+    --card-foreground: 60 30% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 15% 12%;
+    --popover-foreground: 60 30% 96%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 355 7% 97%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 220 14.3% 15.9%;
+    --secondary-foreground: 60 30% 96%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 14.3% 15.9%;
+    --muted-foreground: 217.9 10.6% 64.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 355 7% 97%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 220 13% 18%;
+    --input: 220 13% 18%;
+    --ring: 142 76% 36%;
+
+    /* Spy-themed custom colors */
+    --spy-green: 142 76% 36%;
+    --spy-green-glow: 142 76% 50%;
+    --spy-red: 0 84.2% 60.2%;
+    --spy-yellow: 45 93% 58%;
+    --spy-blue: 221 83% 53%;
+    --matrix-green: 120 100% 50%;
+    
+    /* Gradients */
+    --gradient-spy: linear-gradient(135deg, hsl(142 76% 36%), hsl(221 83% 53%));
+    --gradient-danger: linear-gradient(135deg, hsl(0 84.2% 60.2%), hsl(15 85% 55%));
+    --gradient-reward: linear-gradient(135deg, hsl(45 93% 58%), hsl(142 76% 36%));
+    
+    /* Shadows */
+    --shadow-glow: 0 0 20px hsl(142 76% 36% / 0.3);
+    --shadow-danger: 0 0 20px hsl(0 84.2% 60.2% / 0.3);
+    --shadow-reward: 0 0 20px hsl(45 93% 58% / 0.3);
 
     --radius: 0.5rem;
 
@@ -56,33 +75,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Enhanced Dark Spy Theme */
+    --background: 220 15% 4%;
+    --foreground: 60 30% 96%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 15% 8%;
+    --card-foreground: 60 30% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 15% 8%;
+    --popover-foreground: 60 30% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 142 76% 40%;
+    --primary-foreground: 355 7% 97%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 220 14.3% 12%;
+    --secondary-foreground: 60 30% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 14.3% 12%;
+    --muted-foreground: 217.9 10.6% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 142 76% 40%;
+    --accent-foreground: 355 7% 97%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84.2% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 220 13% 15%;
+    --input: 220 13% 15%;
+    --ring: 142 76% 40%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -101,5 +121,44 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(circle at 25% 25%, hsl(142 76% 36% / 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 75% 75%, hsl(221 83% 53% / 0.1) 0%, transparent 50%);
+  }
+}
+
+@layer utilities {
+  .spy-gradient {
+    background: var(--gradient-spy);
+  }
+  
+  .danger-gradient {
+    background: var(--gradient-danger);
+  }
+  
+  .reward-gradient {
+    background: var(--gradient-reward);
+  }
+  
+  .glow-green {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .glow-danger {
+    box-shadow: var(--shadow-danger);
+  }
+  
+  .glow-reward {
+    box-shadow: var(--shadow-reward);
+  }
+  
+  .matrix-text {
+    color: hsl(var(--matrix-green));
+    text-shadow: 0 0 10px hsl(var(--matrix-green));
+  }
+  
+  .spy-border {
+    border: 1px solid hsl(var(--spy-green) / 0.3);
+    background: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(10px);
   }
 }
