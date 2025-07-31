@@ -128,7 +128,7 @@ export class MemeSpyAPI {
       legitScore: Math.floor(Math.random() * 10) + 1,
       riskScore: Math.floor(Math.random() * 10) + 1,
       rewardScore: Math.floor(Math.random() * 10) + 1,
-      dexScreenerUrl: `https://dexscreener.com/solana/${token.baseAddress}`
+      // Don't include dexScreenerUrl for mock data since they don't exist
     }));
   }
 

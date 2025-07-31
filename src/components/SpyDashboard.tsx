@@ -668,7 +668,7 @@ export const SpyDashboard: React.FC = () => {
               )}
 
               {/* External Links */}
-              {deepScanResults.dexScreenerUrl && (
+              {deepScanResults.dexScreenerUrl ? (
                 <div className="flex gap-2">
                   <Button
                     onClick={() => window.open(deepScanResults.dexScreenerUrl, '_blank')}
@@ -678,6 +678,10 @@ export const SpyDashboard: React.FC = () => {
                     <ExternalLink className="h-4 w-4 mr-2" />
                     View on DexScreener
                   </Button>
+                </div>
+              ) : (
+                <div className="text-center text-muted-foreground">
+                  <p className="text-sm">This is demo data - DexScreener link not available</p>
                 </div>
               )}
             </div>
