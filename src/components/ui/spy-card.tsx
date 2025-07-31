@@ -31,8 +31,10 @@ export const SpyCard: React.FC<SpyCardProps> = ({
   };
 
   const formatAge = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    if (hours < 1) return `${Math.floor(seconds / 60)}m old`;
+    // Handle if the input is in milliseconds instead of seconds
+    const ageInSeconds = seconds > 86400000 ? Math.floor(seconds / 1000) : seconds;
+    const hours = Math.floor(ageInSeconds / 3600);
+    if (hours < 1) return `${Math.floor(ageInSeconds / 60)}m old`;
     if (hours < 24) return `${hours}h old`;
     return `${Math.floor(hours / 24)}d old`;
   };
