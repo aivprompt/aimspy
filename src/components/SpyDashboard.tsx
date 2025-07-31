@@ -26,8 +26,13 @@ import {
   RefreshCw,
   Pin,
   PinOff,
-  Zap
+  Zap,
+  X,
+  ExternalLink,
+  Droplets,
+  Calendar
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export const SpyDashboard: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile>(GameService.getInstance().getDefaultProfile());
@@ -37,6 +42,8 @@ export const SpyDashboard: React.FC = () => {
   const [lastScan, setLastScan] = useState<Date | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
+  const [showDeepScanModal, setShowDeepScanModal] = useState(false);
+  const [deepScanResults, setDeepScanResults] = useState<MemeCoin | null>(null);
   
   const { toast } = useToast();
   const api = MemeSpyAPI.getInstance();
@@ -127,15 +134,17 @@ export const SpyDashboard: React.FC = () => {
     const updatedProfile = gameService.awardPoints(profile, points, `Deep scanned ${coin.symbol}`);
     setProfile(updatedProfile);
     
-    // Reset scanning state after 2 seconds
+    // Show detailed scan results after 2 seconds
     setTimeout(() => {
       setSelectedCoin(null);
+      setDeepScanResults(coin);
+      setShowDeepScanModal(true);
+      
+      toast({
+        title: "🔍 Deep Scan Complete",
+        description: `Analyzed ${coin.symbol}. +${points} Spy Points!`,
+      });
     }, 2000);
-    
-    toast({
-      title: "🔍 Deep Scan Complete",
-      description: `Analyzed ${coin.symbol}. +${points} Spy Points!`,
-    });
   };
 
   const togglePinCoin = (coinAddress: string) => {
@@ -495,6 +504,186 @@ export const SpyDashboard: React.FC = () => {
           />
         </div>
       )}
+
+      {/* Deep Scan Results Modal */}
+      <Dialog open={showDeepScanModal} onOpenChange={setShowDeepScanModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto spy-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-spy-blue" />
+              Deep Scan Analysis: {deepScanResults?.symbol}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {deepScanResults && (
+            <div className="space-y-6">
+              {/* Overview */}
+              <div className="grid grid-cols-2 gap-4">
+                <Card className="spy-border">
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <h3 className="font-bold text-lg">{deepScanResults.name}</h3>
+                      <p className="text-muted-foreground">{deepScanResults.symbol}</p>
+                      <p className="text-2xl font-bold mt-2">{formatMoney(deepScanResults.price)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="spy-border">
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-sm">Market Cap:</span>
+                        <span className="font-semibold">{formatMoney(deepScanResults.marketCap)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Volume 24h:</span>
+                        <span className="font-semibold">{formatMoney(deepScanResults.volume24h)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-sm">Liquidity:</span>
+                        <span className="font-semibold">{formatMoney(deepScanResults.liquidity)}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Risk Analysis */}
+              <Card className="spy-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Shield className="h-5 w-5" />
+                    Risk Analysis
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className={cn(
+                        "text-2xl font-bold",
+                        deepScanResults.legitScore >= 7 ? "text-spy-green" :
+                        deepScanResults.legitScore >= 5 ? "text-spy-yellow" : "text-spy-red"
+                      )}>
+                        {deepScanResults.legitScore}/10
+                      </div>
+                      <p className="text-sm text-muted-foreground">Legitimacy</p>
+                    </div>
+                    <div className="text-center">
+                      <div className={cn(
+                        "text-2xl font-bold",
+                        deepScanResults.riskScore <= 3 ? "text-spy-green" :
+                        deepScanResults.riskScore <= 6 ? "text-spy-yellow" : "text-spy-red"
+                      )}>
+                        {deepScanResults.riskScore}/10
+                      </div>
+                      <p className="text-sm text-muted-foreground">Risk Level</p>
+                    </div>
+                    <div className="text-center">
+                      <div className={cn(
+                        "text-2xl font-bold",
+                        deepScanResults.rewardScore >= 7 ? "text-spy-green" :
+                        deepScanResults.rewardScore >= 5 ? "text-spy-yellow" : "text-spy-red"
+                      )}>
+                        {deepScanResults.rewardScore}/10
+                      </div>
+                      <p className="text-sm text-muted-foreground">Reward Score</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance */}
+              <Card className="spy-border">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <TrendingUp className="h-5 w-5" />
+                    Performance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span>1h Change:</span>
+                    <span className={cn(
+                      "font-semibold",
+                      deepScanResults.priceChange1h >= 0 ? "text-spy-green" : "text-spy-red"
+                    )}>
+                      {deepScanResults.priceChange1h >= 0 ? "+" : ""}{deepScanResults.priceChange1h.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span>24h Change:</span>
+                    <span className={cn(
+                      "font-semibold",
+                      deepScanResults.priceChange24h >= 0 ? "text-spy-green" : "text-spy-red"
+                    )}>
+                      {deepScanResults.priceChange24h >= 0 ? "+" : ""}{deepScanResults.priceChange24h.toFixed(2)}%
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      Age:
+                    </span>
+                    <span className="font-semibold">
+                      {Math.floor(deepScanResults.age / 86400)} days
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Investment Recommendation */}
+              {deepScanResults.recommendation && (
+                <Card className={cn(
+                  "spy-border",
+                  deepScanResults.recommendation.shouldInvest ? "glow-green" : "glow-red"
+                )}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <Target className="h-5 w-5" />
+                      AI Recommendation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "px-3 py-1 rounded-full text-sm font-semibold",
+                        deepScanResults.recommendation.shouldInvest 
+                          ? "bg-spy-green/20 text-spy-green" 
+                          : "bg-spy-red/20 text-spy-red"
+                      )}>
+                        {deepScanResults.recommendation.shouldInvest ? "INVEST" : "AVOID"}
+                      </span>
+                      {deepScanResults.recommendation.shouldInvest && (
+                        <span className="text-lg font-bold text-spy-green">
+                          {formatMoney(deepScanResults.recommendation.suggestedAmount)}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {deepScanResults.recommendation.reasoning}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* External Links */}
+              {deepScanResults.dexScreenerUrl && (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => window.open(deepScanResults.dexScreenerUrl, '_blank')}
+                    variant="outline"
+                    className="spy-border flex-1"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View on DexScreener
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Empty State */}
       {coins.length === 0 && !isScanning && (
