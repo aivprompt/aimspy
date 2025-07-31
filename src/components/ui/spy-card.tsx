@@ -5,12 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { RiskGauge } from './risk-gauge';
 import { MemeCoin } from '@/types/meme-coin';
 import { cn } from '@/lib/utils';
-import { ExternalLink, TrendingUp, TrendingDown, Users, DollarSign } from 'lucide-react';
+import { ExternalLink, TrendingUp, TrendingDown, Users, DollarSign, Pin, PinOff } from 'lucide-react';
 
 interface SpyCardProps {
   coin: MemeCoin;
   onScan: (coin: MemeCoin) => void;
   onInvest?: (coin: MemeCoin) => void;
+  onTogglePin?: () => void;
+  isPinned?: boolean;
   isScanning?: boolean;
 }
 
@@ -18,6 +20,8 @@ export const SpyCard: React.FC<SpyCardProps> = ({
   coin,
   onScan,
   onInvest,
+  onTogglePin,
+  isPinned = false,
   isScanning = false
 }) => {
   const formatMoney = (amount: number) => {
@@ -57,7 +61,7 @@ export const SpyCard: React.FC<SpyCardProps> = ({
     )}>
       <CardHeader className="pb-3">
         <div className="flex justify-between items-start">
-          <div>
+          <div className="flex-1">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
               {coin.symbol}
               {coin.priceChange24h > 0 ? (
@@ -69,14 +73,29 @@ export const SpyCard: React.FC<SpyCardProps> = ({
             <p className="text-sm text-muted-foreground truncate">{coin.name}</p>
             <p className="text-xs text-muted-foreground">{formatAge(coin.age)}</p>
           </div>
-          <div className="text-right">
-            <p className="text-lg font-bold">{formatMoney(coin.price)}</p>
-            <p className={cn(
-              'text-sm font-medium',
-              coin.priceChange24h > 0 ? 'text-spy-green' : 'text-spy-red'
-            )}>
-              {coin.priceChange24h > 0 ? '+' : ''}{coin.priceChange24h.toFixed(2)}%
-            </p>
+          <div className="flex items-start gap-2">
+            {onTogglePin && (
+              <Button
+                onClick={onTogglePin}
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  'h-8 w-8 p-0',
+                  isPinned ? 'text-spy-yellow hover:text-spy-yellow/80' : 'text-muted-foreground hover:text-spy-yellow'
+                )}
+              >
+                {isPinned ? <Pin className="h-4 w-4 fill-current" /> : <PinOff className="h-4 w-4" />}
+              </Button>
+            )}
+            <div className="text-right">
+              <p className="text-lg font-bold">{formatMoney(coin.price)}</p>
+              <p className={cn(
+                'text-sm font-medium',
+                coin.priceChange24h > 0 ? 'text-spy-green' : 'text-spy-red'
+              )}>
+                {coin.priceChange24h > 0 ? '+' : ''}{coin.priceChange24h.toFixed(2)}%
+              </p>
+            </div>
           </div>
         </div>
       </CardHeader>

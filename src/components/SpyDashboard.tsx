@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,12 +21,16 @@ import {
   DollarSign,
   Users,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Pin,
+  PinOff
 } from 'lucide-react';
 
 export const SpyDashboard: React.FC = () => {
   const [profile, setProfile] = useState<UserProfile>(GameService.getInstance().getDefaultProfile());
   const [coins, setCoins] = useState<MemeCoin[]>([]);
+  const [pinnedCoins, setPinnedCoins] = useState<Set<string>>(new Set());
   const [isScanning, setIsScanning] = useState(false);
   const [lastScan, setLastScan] = useState<Date | null>(null);
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
@@ -127,6 +131,61 @@ export const SpyDashboard: React.FC = () => {
     });
   };
 
+  const togglePinCoin = (coinAddress: string) => {
+    const newPinnedCoins = new Set(pinnedCoins);
+    if (pinnedCoins.has(coinAddress)) {
+      newPinnedCoins.delete(coinAddress);
+    } else {
+      newPinnedCoins.add(coinAddress);
+    }
+    setPinnedCoins(newPinnedCoins);
+  };
+
+  const refreshUnpinnedTargets = async () => {
+    if (coins.length === 0) return;
+    
+    setIsScanning(true);
+    toast({
+      title: "🔄 Refreshing Targets",
+      description: "Finding new unpinned targets...",
+    });
+
+    try {
+      const newCoins = await api.fetchNewMemeCoins();
+      const enrichedCoins = newCoins.map(coin => ({
+        ...coin,
+        recommendation: gameService.calculateInvestmentRecommendation(
+          coin, 
+          profile.cashflow, 
+          profile.riskTolerance
+        )
+      }));
+
+      // Keep pinned coins and fill remaining slots with new coins
+      const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
+      const unpinnedNewCoins = enrichedCoins.filter(coin => !pinnedCoins.has(coin.address));
+      
+      const slotsToFill = 6 - pinnedCoinList.length;
+      const finalCoins = [...pinnedCoinList, ...unpinnedNewCoins.slice(0, slotsToFill)];
+      
+      setCoins(finalCoins);
+      
+      toast({
+        title: "✅ Targets Refreshed",
+        description: `Updated ${slotsToFill} unpinned targets`,
+      });
+
+    } catch (error) {
+      toast({
+        title: "❌ Refresh Failed",
+        description: "Unable to refresh targets. Try again later.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const formatMoney = (amount: number) => {
     if (amount >= 1000000) return `$${(amount / 1000000).toFixed(2)}M`;
     if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
@@ -138,9 +197,18 @@ export const SpyDashboard: React.FC = () => {
     return labels[value - 1] || 'Medium';
   };
 
-  const topCoins = coins
+  // Show top 6 targets: pinned coins first, then best unpinned coins
+  const displayCoins = useMemo(() => {
+    const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
+    const unpinnedCoins = coins
+      .filter(coin => !pinnedCoins.has(coin.address))
+      .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
+    
+    return [...pinnedCoinList, ...unpinnedCoins].slice(0, 6);
+  }, [coins, pinnedCoins]);
+
+  const topCoins = displayCoins
     .filter(c => c.recommendation?.shouldInvest)
-    .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore))
     .slice(0, 3);
 
   return (
@@ -310,21 +378,46 @@ export const SpyDashboard: React.FC = () => {
         </Card>
       )}
 
-      {/* Coins Grid */}
-      {coins.length > 0 && (
+      {/* Top 6 Targets */}
+      {displayCoins.length > 0 && (
         <div>
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <Shield className="h-6 w-6 text-spy-green" />
-            Intelligence Report
-            <Badge variant="outline">{coins.length} targets</Badge>
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <Target className="h-6 w-6 text-spy-green" />
+                Top 6 Targets
+              </h2>
+              <Badge variant="outline">{displayCoins.length}/6 slots</Badge>
+              {pinnedCoins.size > 0 && (
+                <Badge className="spy-gradient">
+                  <Pin className="h-3 w-3 mr-1" />
+                  {pinnedCoins.size} pinned
+                </Badge>
+              )}
+            </div>
+            
+            {displayCoins.length > 0 && (
+              <Button
+                onClick={refreshUnpinnedTargets}
+                disabled={isScanning}
+                variant="outline"
+                size="sm"
+                className="spy-border"
+              >
+                <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
+                Refresh Unpinned
+              </Button>
+            )}
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {coins.map(coin => (
+            {displayCoins.map(coin => (
               <SpyCard
                 key={coin.address}
                 coin={coin}
                 onScan={handleCoinScan}
+                onTogglePin={() => togglePinCoin(coin.address)}
+                isPinned={pinnedCoins.has(coin.address)}
                 isScanning={selectedCoin?.address === coin.address}
               />
             ))}
