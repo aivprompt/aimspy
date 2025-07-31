@@ -31,50 +31,62 @@ export class MemeSpyAPI {
     await rateLimiter.throttle();
     
     try {
-      // Use Solana-specific endpoint to get better results
-      const response = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
-      const data = await response.json();
+      // Try multiple endpoints to get Solana tokens
+      let allPairs: any[] = [];
       
-      if (!data.pairs) {
-        console.log('No pairs found, trying backup endpoint...');
-        // Fallback to general search
-        const fallbackResponse = await fetch('https://api.dexscreener.com/latest/dex/search?q=pump.fun');
-        const fallbackData = await fallbackResponse.json();
-        
-        if (!fallbackData.pairs) return [];
-        
-        // Filter specifically for Solana blockchain tokens
-        const filteredPairs = fallbackData.pairs.filter((pair: any) => {
-          const ageInSeconds = (Date.now() - (pair.pairCreatedAt || 0)) / 1000;
-          const ageInDays = ageInSeconds / 86400;
-          return pair.chainId === 'solana' && ageInDays < 30 && (pair.fdv || 0) < 50000000;
-        });
-
-        console.log(`Filtered pairs found: ${filteredPairs.length}`);
-        
-        const coins: MemeCoin[] = [];
-        
-        for (const pair of filteredPairs.slice(0, 30)) {
-          const coin = await this.processCoinData(pair);
-          if (coin) coins.push(coin);
+      // First try: trending tokens
+      try {
+        const trendingResponse = await fetch('https://api.dexscreener.com/latest/dex/tokens/trending');
+        const trendingData = await trendingResponse.json();
+        if (trendingData.pairs) {
+          allPairs = [...allPairs, ...trendingData.pairs];
         }
-        
-        console.log(`Processed coins: ${coins.length}`);
-        return coins;
+      } catch (e) {
+        console.log('Trending endpoint failed');
       }
       
-      // Process Solana SOL pairs
-      const solPairs = data.pairs.filter((pair: any) => {
-        const ageInSeconds = (Date.now() - (pair.pairCreatedAt || 0)) / 1000;
-        const ageInDays = ageInSeconds / 86400;
-        return pair.chainId === 'solana' && ageInDays < 30 && (pair.fdv || 0) < 50000000;
+      // Second try: search for pump.fun (Solana meme platform)
+      try {
+        const pumpResponse = await fetch('https://api.dexscreener.com/latest/dex/search?q=pump');
+        const pumpData = await pumpResponse.json();
+        if (pumpData.pairs) {
+          allPairs = [...allPairs, ...pumpData.pairs];
+        }
+      } catch (e) {
+        console.log('Pump search failed');
+      }
+      
+      // Third try: general solana search
+      try {
+        const solanaResponse = await fetch('https://api.dexscreener.com/latest/dex/search?q=SOL');
+        const solanaData = await solanaResponse.json();
+        if (solanaData.pairs) {
+          allPairs = [...allPairs, ...solanaData.pairs];
+        }
+      } catch (e) {
+        console.log('SOL search failed');
+      }
+      
+      console.log(`Total pairs from all sources: ${allPairs.length}`);
+      
+      // Filter specifically for Solana blockchain tokens
+      const solanaPairs = allPairs.filter((pair: any) => {
+        return pair.chainId === 'solana';
       });
-
-      console.log(`SOL pairs found: ${solPairs.length}`);
+      
+      console.log(`Solana pairs found: ${solanaPairs.length}`);
+      
+      // Further filter for reasonable market caps and age
+      const filteredPairs = solanaPairs.filter((pair: any) => {
+        const marketCap = pair.fdv || 0;
+        return marketCap > 1000 && marketCap < 100000000; // Between $1K and $100M
+      });
+      
+      console.log(`Filtered Solana pairs: ${filteredPairs.length}`);
 
       const coins: MemeCoin[] = [];
       
-      for (const pair of solPairs.slice(0, 30)) {
+      for (const pair of filteredPairs.slice(0, 25)) {
         const coin = await this.processCoinData(pair);
         if (coin) coins.push(coin);
       }
