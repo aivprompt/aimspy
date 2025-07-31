@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Header } from '@/components/Header';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -275,16 +276,9 @@ export const SpyDashboard: React.FC = () => {
     .slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background p-4 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-4xl font-bold spy-gradient bg-clip-text text-transparent">
-          🕵️‍♂️ AI Meme Spy HQ
-        </h1>
-        <p className="text-muted-foreground">
-          Advanced Intelligence for Solana Meme Coin Operations
-        </p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <div className="p-4 space-y-6">
 
       {/* Profile & Controls */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -703,6 +697,7 @@ export const SpyDashboard: React.FC = () => {
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 };
