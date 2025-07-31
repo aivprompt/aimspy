@@ -31,25 +31,55 @@ export class MemeSpyAPI {
     await rateLimiter.throttle();
     
     try {
-      const response = await fetch('https://api.dexscreener.com/latest/dex/search?q=solana');
+      // Use Solana-specific endpoint to get better results
+      const response = await fetch('https://api.dexscreener.com/latest/dex/tokens/So11111111111111111111111111111111111111112');
       const data = await response.json();
       
-      if (!data.pairs) return [];
+      if (!data.pairs) {
+        console.log('No pairs found, trying backup endpoint...');
+        // Fallback to general search
+        const fallbackResponse = await fetch('https://api.dexscreener.com/latest/dex/search?q=pump.fun');
+        const fallbackData = await fallbackResponse.json();
+        
+        if (!fallbackData.pairs) return [];
+        
+        // Filter specifically for Solana blockchain tokens
+        const filteredPairs = fallbackData.pairs.filter((pair: any) => {
+          const ageInSeconds = (Date.now() - (pair.pairCreatedAt || 0)) / 1000;
+          const ageInDays = ageInSeconds / 86400;
+          return pair.chainId === 'solana' && ageInDays < 30 && (pair.fdv || 0) < 50000000;
+        });
+
+        console.log(`Filtered pairs found: ${filteredPairs.length}`);
+        
+        const coins: MemeCoin[] = [];
+        
+        for (const pair of filteredPairs.slice(0, 30)) {
+          const coin = await this.processCoinData(pair);
+          if (coin) coins.push(coin);
+        }
+        
+        console.log(`Processed coins: ${coins.length}`);
+        return coins;
+      }
       
-      // Filter for meme coins (< 30 days old, < $50M market cap, prioritize Solana)
-      const filteredPairs = data.pairs.filter((pair: any) => {
+      // Process Solana SOL pairs
+      const solPairs = data.pairs.filter((pair: any) => {
         const ageInSeconds = (Date.now() - (pair.pairCreatedAt || 0)) / 1000;
         const ageInDays = ageInSeconds / 86400;
-        return ageInDays < 30 && (pair.fdv || 0) < 50000000;
+        return pair.chainId === 'solana' && ageInDays < 30 && (pair.fdv || 0) < 50000000;
       });
+
+      console.log(`SOL pairs found: ${solPairs.length}`);
 
       const coins: MemeCoin[] = [];
       
-      for (const pair of filteredPairs.slice(0, 30)) { // Limit to 30 coins
+      for (const pair of solPairs.slice(0, 30)) {
         const coin = await this.processCoinData(pair);
         if (coin) coins.push(coin);
       }
       
+      console.log(`Final processed coins: ${coins.length}`);
       return coins;
     } catch (error) {
       console.error('Error fetching meme coins:', error);
