@@ -8,52 +8,52 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Spy HQ Theme - Dark Blues & Greens */
-    --background: 220 15% 8%;
-    --foreground: 60 30% 96%;
+    /* Director's Cut Theme - Dark with Gold Accents */
+    --background: 210 40% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 220 15% 12%;
-    --card-foreground: 60 30% 96%;
+    --card: 210 40% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 60 30% 96%;
+    --popover: 210 40% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 142 76% 36%;
-    --primary-foreground: 355 7% 97%;
+    --primary: 45 93% 58%;
+    --primary-foreground: 210 40% 8%;
 
-    --secondary: 220 14.3% 15.9%;
-    --secondary-foreground: 60 30% 96%;
+    --secondary: 210 40% 20%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 220 14.3% 15.9%;
-    --muted-foreground: 217.9 10.6% 64.9%;
+    --muted: 210 40% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 142 76% 36%;
-    --accent-foreground: 355 7% 97%;
+    --accent: 210 40% 18%;
+    --accent-foreground: 0 0% 95%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 18%;
-    --input: 220 13% 18%;
-    --ring: 142 76% 36%;
+    --border: 210 40% 18%;
+    --input: 210 40% 18%;
+    --ring: 45 93% 58%;
 
-    /* Spy-themed custom colors */
-    --spy-green: 142 76% 36%;
-    --spy-green-glow: 142 76% 50%;
+    /* Director-themed custom colors */
+    --spy-green: 45 93% 58%;
+    --spy-green-glow: 45 93% 68%;
     --spy-red: 0 84.2% 60.2%;
     --spy-yellow: 45 93% 58%;
     --spy-blue: 221 83% 53%;
     --matrix-green: 120 100% 50%;
     
     /* Gradients */
-    --gradient-spy: linear-gradient(135deg, hsl(142 76% 36%), hsl(221 83% 53%));
+    --gradient-spy: linear-gradient(135deg, hsl(45 93% 58%), hsl(45 93% 68%));
     --gradient-danger: linear-gradient(135deg, hsl(0 84.2% 60.2%), hsl(15 85% 55%));
-    --gradient-reward: linear-gradient(135deg, hsl(45 93% 58%), hsl(142 76% 36%));
+    --gradient-reward: linear-gradient(135deg, hsl(45 93% 58%), hsl(60 93% 68%));
     
     /* Shadows */
-    --shadow-glow: 0 0 20px hsl(142 76% 36% / 0.3);
+    --shadow-glow: 0 0 20px hsl(45 93% 58% / 0.3);
     --shadow-danger: 0 0 20px hsl(0 84.2% 60.2% / 0.3);
-    --shadow-reward: 0 0 20px hsl(45 93% 58% / 0.3);
+    --shadow-reward: 0 0 20px hsl(45 93% 58% / 0.4);
 
     --radius: 0.5rem;
 
@@ -75,34 +75,34 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Enhanced Dark Spy Theme */
-    --background: 220 15% 4%;
-    --foreground: 60 30% 96%;
+    /* Enhanced Dark Director's Cut Theme */
+    --background: 210 40% 8%;
+    --foreground: 0 0% 95%;
 
-    --card: 220 15% 8%;
-    --card-foreground: 60 30% 96%;
+    --card: 210 40% 12%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 220 15% 8%;
-    --popover-foreground: 60 30% 96%;
+    --popover: 210 40% 12%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 142 76% 40%;
-    --primary-foreground: 355 7% 97%;
+    --primary: 45 93% 58%;
+    --primary-foreground: 210 40% 8%;
 
-    --secondary: 220 14.3% 12%;
-    --secondary-foreground: 60 30% 96%;
+    --secondary: 210 40% 20%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 220 14.3% 12%;
-    --muted-foreground: 217.9 10.6% 60%;
+    --muted: 210 40% 15%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 142 76% 40%;
-    --accent-foreground: 355 7% 97%;
+    --accent: 210 40% 18%;
+    --accent-foreground: 0 0% 95%;
 
     --destructive: 0 84.2% 55%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 13% 15%;
-    --input: 220 13% 15%;
-    --ring: 142 76% 40%;
+    --border: 210 40% 18%;
+    --input: 210 40% 18%;
+    --ring: 45 93% 58%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
