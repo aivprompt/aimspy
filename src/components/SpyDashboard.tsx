@@ -199,12 +199,15 @@ export const SpyDashboard: React.FC = () => {
 
   // Show top 6 targets: pinned coins first, then best unpinned coins
   const displayCoins = useMemo(() => {
+    console.log('Total coins available:', coins.length);
     const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
     const unpinnedCoins = coins
       .filter(coin => !pinnedCoins.has(coin.address))
       .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
     
-    return [...pinnedCoinList, ...unpinnedCoins].slice(0, 6);
+    const result = [...pinnedCoinList, ...unpinnedCoins].slice(0, 6);
+    console.log('Display coins result:', result.length, 'coins');
+    return result;
   }, [coins, pinnedCoins]);
 
   const topCoins = displayCoins
