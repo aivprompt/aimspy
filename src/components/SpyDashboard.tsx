@@ -249,11 +249,11 @@ export const SpyDashboard: React.FC = () => {
     return [...pinnedCoinList, ...unpinnedCoins].slice(0, 3);
   }, [coins, pinnedCoins]);
 
-  // Latest 20 minted coins (sorted by newest first)
+  // Latest 20 minted coins (sorted by newest first) - separate from main targets
   const latestCoins = useMemo(() => {
     return [...coins]
       .sort((a, b) => a.age - b.age) // Newest first (smaller age)
-      .slice(0, 20);
+      .slice(3, 23); // Skip first 3 (which are main targets) and take next 20
   }, [coins]);
 
   const topCoins = displayCoins

@@ -104,21 +104,31 @@ export const LatestMints: React.FC<LatestMintsProps> = ({
                   </div>
                 )}
                 
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
-                      {coin.symbol}
-                    </h4>
-                    <Badge 
-                      variant="outline" 
-                      className={cn("text-xs", risk.color)}
-                    >
-                      {risk.label}
-                    </Badge>
+                <div className="flex items-center gap-3 mb-2">
+                  {/* Coin Avatar */}
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-spy-blue to-spy-green flex items-center justify-center text-white text-xs font-bold">
+                    {coin.symbol.slice(0, 2)}
                   </div>
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {formatAge(coin.age)}
+                  
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-semibold text-sm group-hover:text-primary transition-colors">
+                          {coin.symbol}
+                        </h4>
+                        <Badge 
+                          variant="outline" 
+                          className={cn("text-xs", risk.color)}
+                        >
+                          {risk.label}
+                        </Badge>
+                      </div>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {formatAge(coin.age)}
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate">{coin.name}</p>
                   </div>
                 </div>
                 
