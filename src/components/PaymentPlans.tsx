@@ -15,14 +15,24 @@ const plans = [
     priceId: 'price_1RrABiDnkc0bvj3EYuIiq1E0',
     description: 'Perfect for new meme coin investors getting started',
     features: [
-      'Basic Meme Scan Analysis',
-      'Token Safety Checks',
-      'Social Media Sentiment',
-      '5 Scans Per Day',
-      'Basic Risk Assessment',
-      'Email Support',
+      'Real-time Meme Coin Detection',
+      'Advanced AI Risk Analysis',
+      'Social Media Sentiment Tracking',
+      'Whale Movement Alerts',
+      'Rug Pull Protection System',
+      'Market Manipulation Detection',
+      'Token Contract Analysis',
+      'Liquidity Pool Monitoring',
+      'Developer Wallet Tracking',
+      'Community Score Analysis',
+      'Price Prediction Models',
+      'Portfolio Risk Assessment',
+      'Custom Alert System',
       'Mobile App Access',
-      '10 Day Access'
+      'Email & Discord Notifications',
+      'Historical Data Access',
+      'Advanced Charting Tools',
+      'API Integration Support'
     ],
     badge: null,
     planType: 'trial'
@@ -34,18 +44,24 @@ const plans = [
     priceId: 'price_1RrACmDnkc0bvj3E9RDIWicO',
     description: 'For serious traders and meme coin enthusiasts',
     features: [
-      'Advanced AI Analysis',
-      'Real-time Market Alerts',
-      'Unlimited Scans',
-      'Whale Tracking',
-      'Rug Pull Protection',
-      'Premium Risk Metrics',
-      'Portfolio Tracking',
-      'Discord Integration',
-      'Priority Support',
+      'Real-time Meme Coin Detection',
+      'Advanced AI Risk Analysis',
+      'Social Media Sentiment Tracking',
+      'Whale Movement Alerts',
+      'Rug Pull Protection System',
+      'Market Manipulation Detection',
+      'Token Contract Analysis',
+      'Liquidity Pool Monitoring',
+      'Developer Wallet Tracking',
+      'Community Score Analysis',
+      'Price Prediction Models',
+      'Portfolio Risk Assessment',
+      'Custom Alert System',
+      'Mobile App Access',
+      'Email & Discord Notifications',
+      'Historical Data Access',
       'Advanced Charting Tools',
-      'Custom Notifications',
-      'Historical Data Access'
+      'API Integration Support'
     ],
     badge: 'Most Popular',
     planType: 'monthly'
@@ -57,20 +73,24 @@ const plans = [
     priceId: 'price_1RrADgDnkc0bvj3EH15cV8pU',
     description: 'Complete intelligence solution for professional traders',
     features: [
-      'All Spy Agent Features',
-      'Custom AI Model Training',
-      'White-label Solutions',
-      'Dedicated Account Manager',
-      'Advanced Analytics Dashboard',
-      'API Access',
-      'Custom Integrations',
-      'Bulk Analysis Tools',
-      '24/7 Phone Support',
-      'Private Discord Channel',
-      'Early Feature Access',
-      'Market Making Insights',
-      'Institutional Reports',
-      'Custom Risk Models'
+      'Real-time Meme Coin Detection',
+      'Advanced AI Risk Analysis',
+      'Social Media Sentiment Tracking',
+      'Whale Movement Alerts',
+      'Rug Pull Protection System',
+      'Market Manipulation Detection',
+      'Token Contract Analysis',
+      'Liquidity Pool Monitoring',
+      'Developer Wallet Tracking',
+      'Community Score Analysis',
+      'Price Prediction Models',
+      'Portfolio Risk Assessment',
+      'Custom Alert System',
+      'Mobile App Access',
+      'Email & Discord Notifications',
+      'Historical Data Access',
+      'Advanced Charting Tools',
+      'API Integration Support'
     ],
     badge: 'Best Value',
     planType: 'annual'
@@ -145,7 +165,9 @@ export const PaymentPlans = () => {
                   <span className={`text-4xl font-bold ${plan.badge === 'Most Popular' ? 'text-yellow-400' : 'text-white'}`}>
                     {plan.price}
                   </span>
-                  <span className="text-gray-400">/month</span>
+                  <span className="text-gray-400">
+                    {plan.planType === 'trial' ? '/trial' : plan.planType === 'annual' ? '/annual' : '/month'}
+                  </span>
                 </div>
                 <CardDescription className="text-gray-300 text-sm">
                   {plan.description}
