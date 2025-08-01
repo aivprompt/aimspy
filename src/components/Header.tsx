@@ -18,7 +18,7 @@ export const Header = () => {
             onClick={() => navigate('/')}
           >
             <img 
-              src="/lovable-uploads/26518dff-2060-465c-a043-13879174ca6e.png" 
+              src="/lovable-uploads/06710f62-428d-439d-95c1-7973e23f94e1.png" 
               alt="AIMS Logo" 
               className="w-48 h-48 object-contain"
             />
