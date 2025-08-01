@@ -28,14 +28,14 @@ import mascot from '@/assets/mascot.png';
 
 const Features = () => {
   useEffect(() => {
-    document.title = 'Advanced Features - Spy HQ Meme Coin Intelligence Platform';
+    document.title = 'Advanced Features - AIMS Meme Coin Intelligence Platform';
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'Discover Spy HQ\'s powerful features for meme coin analysis. Real-time intelligence, AI-powered risk assessment, deep scanning technology, and professional-grade tools for crypto traders and investors.');
+      metaDescription.setAttribute('content', 'Discover AIMS\'s powerful features for meme coin analysis. Real-time intelligence, AI-powered risk assessment, deep scanning technology, and professional-grade tools for crypto traders and investors.');
     } else {
       const meta = document.createElement('meta');
       meta.name = 'description';
-      meta.content = 'Discover Spy HQ\'s powerful features for meme coin analysis. Real-time intelligence, AI-powered risk assessment, deep scanning technology, and professional-grade tools for crypto traders and investors.';
+      meta.content = 'Discover AIMS\'s powerful features for meme coin analysis. Real-time intelligence, AI-powered risk assessment, deep scanning technology, and professional-grade tools for crypto traders and investors.';
       document.head.appendChild(meta);
     }
   }, []);
@@ -50,7 +50,7 @@ const Features = () => {
           <div className="flex items-center justify-center gap-4 mb-8">
             <img 
               src={mascot} 
-              alt="Spy HQ Mascot - Advanced Meme Coin Intelligence" 
+              alt="AIMS Mascot - Advanced Meme Coin Intelligence" 
               className="w-20 h-20 rounded-lg animate-pulse"
             />
             <div>
@@ -398,7 +398,7 @@ const Features = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Access Spy HQ from any device - desktop, tablet, or mobile. 
+                  Access AIMS from any device - desktop, tablet, or mobile. 
                   Your analysis follows you wherever you go.
                 </p>
               </CardContent>
@@ -454,7 +454,7 @@ const Features = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground italic">
-                  "Spy HQ saved me from at least 3 rug pulls this month. The AI deep scan 
+                  "AIMS saved me from at least 3 rug pulls this month. The AI deep scan 
                   is incredibly accurate - it's like having a team of analysts in your pocket!"
                 </p>
               </CardContent>
@@ -489,7 +489,7 @@ const Features = () => {
               <CardContent>
                 <p className="text-muted-foreground italic">
                   "Professional-grade analysis that used to cost thousands per month. 
-                  The ROI on my Spy HQ subscription pays for itself every single day."
+                  The ROI on my AIMS subscription pays for itself every single day."
                 </p>
               </CardContent>
             </Card>
@@ -504,7 +504,7 @@ const Features = () => {
                 Ready to Dominate the Meme Coin Market?
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                Join thousands of successful traders who trust Spy HQ for their meme coin intelligence. 
+                Join thousands of successful traders who trust AIMS for their meme coin intelligence. 
                 Don't trade blind - trade with purpose, precision, and power.
               </p>
               

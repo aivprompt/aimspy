@@ -22,14 +22,14 @@ import mascot from '@/assets/mascot.png';
 
 const UserGuide = () => {
   useEffect(() => {
-    document.title = 'Complete User Guide - Spy HQ Meme Coin Intelligence Platform';
+    document.title = 'Complete User Guide - AIMS Meme Coin Intelligence Platform';
     const metaDescription = document.querySelector('meta[name="description"]');
     if (metaDescription) {
-      metaDescription.setAttribute('content', 'Master Spy HQ with our comprehensive user guide. Learn how to analyze meme coins, perform deep scans, assess risks, and make informed crypto investment decisions with our advanced intelligence platform.');
+      metaDescription.setAttribute('content', 'Master AIMS with our comprehensive user guide. Learn how to analyze meme coins, perform deep scans, assess risks, and make informed crypto investment decisions with our advanced intelligence platform.');
     } else {
       const meta = document.createElement('meta');
       meta.name = 'description';
-      meta.content = 'Master Spy HQ with our comprehensive user guide. Learn how to analyze meme coins, perform deep scans, assess risks, and make informed crypto investment decisions with our advanced intelligence platform.';
+      meta.content = 'Master AIMS with our comprehensive user guide. Learn how to analyze meme coins, perform deep scans, assess risks, and make informed crypto investment decisions with our advanced intelligence platform.';
       document.head.appendChild(meta);
     }
   }, []);
@@ -48,7 +48,7 @@ const UserGuide = () => {
           <div className="flex items-center justify-center gap-4 mb-6">
             <img 
               src={mascot} 
-              alt="Spy HQ Mascot - Meme Coin Intelligence" 
+              alt="AIMS Mascot - Meme Coin Intelligence" 
               className="w-16 h-16 rounded-lg"
             />
             <div>
@@ -63,7 +63,7 @@ const UserGuide = () => {
           
           <p className="text-lg text-muted-foreground max-w-3xl mx-auto mb-8">
             Welcome to the ultimate guide for navigating the volatile world of meme coin investments. 
-            Learn how to use Spy HQ's advanced intelligence platform to analyze, evaluate, and track 
+            Learn how to use AIMS's advanced intelligence platform to analyze, evaluate, and track 
             meme coins with professional-grade tools and AI-powered insights.
           </p>
           
@@ -175,16 +175,16 @@ const UserGuide = () => {
           <section id="getting-started">
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
               <Rocket className="h-8 w-8 text-primary" />
-              Getting Started with Spy HQ
+              Getting Started with AIMS
             </h2>
             
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle>What is Spy HQ?</CardTitle>
+                <CardTitle>What is AIMS?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p>
-                  Spy HQ is the most advanced meme coin intelligence platform designed to help traders, 
+                  AIMS is the most advanced meme coin intelligence platform designed to help traders, 
                   investors, and researchers navigate the chaotic world of meme cryptocurrencies. Our 
                   platform combines real-time blockchain data, AI-powered analysis, and comprehensive 
                   risk assessment tools to provide you with the insights you need.
