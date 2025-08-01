@@ -1,56 +1,57 @@
 import { Button } from '@/components/ui/button';
-import { BookOpen } from 'lucide-react';
-import mascot from '@/assets/mascot.png';
 
 export const Header = () => {
-
   return (
-    <header className="spy-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-3">
+    <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
+      <div className="container mx-auto px-6 py-6">
         <div className="flex items-center justify-between">
-          {/* Logo and Mascot */}
+          {/* AIMS Logo */}
           <div 
-            className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+            className="cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => window.location.href = '/'}
           >
-            <img 
-              src={mascot} 
-              alt="Spy HQ Mascot" 
-              className="w-10 h-10 rounded-lg"
-            />
-            <div>
-              <h1 className="text-xl font-bold spy-gradient bg-clip-text text-transparent">
-                Spy HQ
+            <div className="text-center">
+              <h1 className="text-3xl font-bold text-yellow-400 tracking-wider">
+                AIMS
               </h1>
-              <p className="text-xs text-muted-foreground">Meme Coin Intelligence</p>
+              <p className="text-xs text-gray-400 tracking-wide mt-1">
+                (ai-meme-spy)
+              </p>
             </div>
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Button 
               variant="ghost" 
-              size="sm"
+              className="bg-yellow-400 text-gray-900 hover:bg-yellow-500 px-6 py-2 rounded-md font-medium"
+              onClick={() => window.location.href = '/'}
+            >
+              Home
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              className="bg-gray-700 text-white hover:bg-gray-600 px-6 py-2 rounded-md font-medium"
               onClick={() => window.location.href = '/features'}
             >
-              Features
+              Studio
             </Button>
             
             <Button 
               variant="ghost" 
-              size="sm"
+              className="bg-gray-700 text-white hover:bg-gray-600 px-6 py-2 rounded-md font-medium"
               onClick={() => window.location.href = '/user-guide'}
             >
-              <BookOpen className="h-4 w-4 mr-2" />
-              User Guide
+              Guides
             </Button>
             
             <Button 
-              variant="default" 
-              size="sm"
+              variant="ghost" 
+              className="bg-gray-700 text-white hover:bg-gray-600 px-6 py-2 rounded-md font-medium"
               onClick={() => window.location.href = '/payment'}
             >
-              Upgrade to Pro
+              Membership
             </Button>
           </div>
         </div>

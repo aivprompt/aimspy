@@ -10,45 +10,67 @@ import { supabase } from '@/integrations/supabase/client';
 const plans = [
   {
     id: 'trial',
-    name: '10-Day Trial',
+    name: 'Spy Cadet',
     price: '$9.95',
     priceId: 'price_1RrABiDnkc0bvj3EYuIiq1E0',
-    description: 'Perfect for indie filmmakers and content creators getting started',
+    description: 'Perfect for new meme coin investors getting started',
     features: [
-      'Access to all spy features',
-      '10 days full access',
-      'Basic support',
-      'No recurring charges'
+      'Basic Meme Scan Analysis',
+      'Token Safety Checks',
+      'Social Media Sentiment',
+      '5 Scans Per Day',
+      'Basic Risk Assessment',
+      'Email Support',
+      'Mobile App Access',
+      '10 Day Access'
     ],
     badge: null,
     planType: 'trial'
   },
   {
     id: 'monthly',
-    name: 'Monthly Plan',
-    price: '$19.95',
+    name: 'Spy Agent',
+    price: '$29.95',
     priceId: 'price_1RrACmDnkc0bvj3E9RDIWicO',
-    description: 'For professional directors and production companies',
+    description: 'For serious traders and meme coin enthusiasts',
     features: [
-      'Unlimited spy scans',
-      'Premium features',
-      'Priority support',
-      'Monthly billing'
+      'Advanced AI Analysis',
+      'Real-time Market Alerts',
+      'Unlimited Scans',
+      'Whale Tracking',
+      'Rug Pull Protection',
+      'Premium Risk Metrics',
+      'Portfolio Tracking',
+      'Discord Integration',
+      'Priority Support',
+      'Advanced Charting Tools',
+      'Custom Notifications',
+      'Historical Data Access'
     ],
     badge: 'Most Popular',
     planType: 'monthly'
   },
   {
     id: 'annual',
-    name: 'Annual Plan',
-    price: '$149.95',
+    name: 'Spy Master',
+    price: '$249.95',
     priceId: 'price_1RrADgDnkc0bvj3EH15cV8pU',
-    description: 'Complete studio-grade solution for large productions',
+    description: 'Complete intelligence solution for professional traders',
     features: [
-      'Everything in Monthly',
-      'Save $89.45 per year',
-      'Premium support',
-      'Yearly billing'
+      'All Spy Agent Features',
+      'Custom AI Model Training',
+      'White-label Solutions',
+      'Dedicated Account Manager',
+      'Advanced Analytics Dashboard',
+      'API Access',
+      'Custom Integrations',
+      'Bulk Analysis Tools',
+      '24/7 Phone Support',
+      'Private Discord Channel',
+      'Early Feature Access',
+      'Market Making Insights',
+      'Institutional Reports',
+      'Custom Risk Models'
     ],
     badge: 'Best Value',
     planType: 'annual'
@@ -96,12 +118,7 @@ export const PaymentPlans = () => {
       <div className="w-full max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-yellow-400 mb-4">Membership</h1>
-          <p className="text-gray-400 text-lg">Choose the perfect plan for your production needs</p>
-          <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-600/30 rounded-lg">
-            <p className="text-sm text-yellow-300">
-              <strong>Note:</strong> These are placeholder test price IDs. Please create test prices in your Stripe dashboard and replace the priceId values above.
-            </p>
-          </div>
+          <p className="text-gray-400 text-lg">Choose the perfect plan for your meme coin intelligence needs</p>
         </div>
         
         <div className="grid md:grid-cols-3 gap-8">
