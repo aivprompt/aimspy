@@ -55,7 +55,7 @@ const Index = () => {
             />
           </div>
           
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto">
+          <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
             AIMS harnesses cutting-edge AI to analyze meme coins in real-time, providing you with the intelligence needed to navigate the volatile world of cryptocurrency with confidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
