@@ -62,26 +62,10 @@ export const PaymentPlans = () => {
     try {
       setLoading(plan.id);
       
-      // Get current session for authenticated users (optional)
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      
-      // Add auth header if user is logged in
-      if (session?.access_token) {
-        headers['Authorization'] = `Bearer ${session.access_token}`;
-      }
-
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: JSON.stringify({
+        body: {
           priceId: plan.priceId,
           planType: plan.planType
-        }),
-        headers: {
-          ...headers,
-          'Content-Type': 'application/json'
         }
       });
 

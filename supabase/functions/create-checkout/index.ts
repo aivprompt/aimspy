@@ -24,20 +24,33 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    // Parse request body safely
-    let requestBody;
+    // Get request body - handle both JSON and form data
+    let priceId, planType;
+    
     try {
-      const body = await req.text();
-      logStep("Raw request body", { body });
-      requestBody = body ? JSON.parse(body) : {};
+      const contentType = req.headers.get("content-type") || "";
+      logStep("Content type", { contentType });
+      
+      if (contentType.includes("application/json")) {
+        const body = await req.json();
+        logStep("JSON body received", body);
+        priceId = body.priceId;
+        planType = body.planType;
+      } else {
+        const formData = await req.formData();
+        logStep("Form data received", Object.fromEntries(formData));
+        priceId = formData.get("priceId");
+        planType = formData.get("planType");
+      }
     } catch (parseError) {
-      logStep("JSON parse error", { error: parseError.message });
-      throw new Error(`Invalid JSON in request body: ${parseError.message}`);
+      logStep("Parse error, using URL params", { error: parseError.message });
+      const url = new URL(req.url);
+      priceId = url.searchParams.get("priceId");
+      planType = url.searchParams.get("planType");
     }
 
-    const { priceId, planType } = requestBody;
     if (!priceId) throw new Error("Price ID is required");
-    logStep("Request data", { priceId, planType });
+    logStep("Final request data", { priceId, planType });
 
     // Create Supabase client for user authentication
     const supabaseClient = createClient(
