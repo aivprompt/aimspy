@@ -34,27 +34,18 @@ interface ProcessingPanelProps {
   className?: string;
 }
 
-export const NetworkActivityPanel: React.FC<ProcessingPanelProps> = ({ className }) => {
-  const [metrics, setMetrics] = useState<MetricValue[]>([
-    { current: 847, previous: 832, change: 1.8, trend: 'up' },
-    { current: 234, previous: 241, change: -2.9, trend: 'down' },
-    { current: 156, previous: 143, change: 9.1, trend: 'up' },
-    { current: 89, previous: 76, change: 17.1, trend: 'up' }
-  ]);
-
-  const [activeConnections, setActiveConnections] = useState(23);
-  const [processingState, setProcessingState] = useState(0);
+export const SolanaNetworkPanel: React.FC<ProcessingPanelProps> = ({ className }) => {
+  const [solPrice, setSolPrice] = useState(142.35);
+  const [tps, setTps] = useState(3847);
+  const [validators, setValidators] = useState(1234);
+  const [epochProgress, setEpochProgress] = useState(67);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMetrics(prev => prev.map(metric => ({
-        ...metric,
-        current: metric.current + (Math.random() - 0.5) * 10,
-        change: (Math.random() - 0.5) * 5
-      })));
-      
-      setActiveConnections(prev => Math.max(15, Math.min(30, prev + (Math.random() - 0.5) * 3)));
-      setProcessingState(prev => (prev + 1) % 100);
+      setSolPrice(prev => Math.max(120, Math.min(200, prev + (Math.random() - 0.5) * 2)));
+      setTps(prev => Math.max(2000, Math.min(5000, prev + (Math.random() - 0.5) * 200)));
+      setValidators(prev => Math.max(1200, Math.min(1300, prev + (Math.random() - 0.5) * 5)));
+      setEpochProgress(prev => (prev + 0.1) % 100);
     }, 2000);
 
     return () => clearInterval(interval);
@@ -65,52 +56,59 @@ export const NetworkActivityPanel: React.FC<ProcessingPanelProps> = ({ className
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           <Network className="h-4 w-4 text-primary animate-pulse" />
-          Network Activity
+          Solana Network
           <Badge variant="outline" className="ml-auto">Live</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
-          {['Nodes', 'Tx/s', 'Peers', 'Blocks'].map((label, index) => (
-            <div key={label} className="space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{label}</span>
-                <div className="flex items-center gap-1">
-                  {metrics[index]?.trend === 'up' ? (
-                    <TrendingUp className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                  )}
-                  <span className="text-xs text-muted-foreground">
-                    {metrics[index]?.change.toFixed(1)}%
-                  </span>
-                </div>
-              </div>
-              <div className="text-lg font-mono font-bold">
-                {Math.round(metrics[index]?.current || 0).toLocaleString()}
-              </div>
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">SOL Price</span>
+            <div className="text-lg font-mono font-bold text-green-500">
+              ${solPrice.toFixed(2)}
             </div>
-          ))}
+          </div>
+          
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">TPS</span>
+            <div className="text-lg font-mono font-bold">
+              {Math.round(tps).toLocaleString()}
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Validators</span>
+            <div className="text-lg font-mono font-bold">
+              {Math.round(validators).toLocaleString()}
+            </div>
+          </div>
+          
+          <div className="space-y-1">
+            <span className="text-xs text-muted-foreground">Epoch</span>
+            <div className="text-lg font-mono font-bold">
+              {Math.round(epochProgress)}%
+            </div>
+          </div>
         </div>
         
         <div className="space-y-2">
           <div className="flex justify-between text-xs">
-            <span>Processing Queue</span>
-            <span>{processingState}%</span>
+            <span>Epoch Progress</span>
+            <span>{epochProgress.toFixed(1)}%</span>
           </div>
           <div className="h-1 bg-muted rounded-full overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-primary to-primary/70 transition-all duration-1000"
-              style={{ width: `${processingState}%` }}
+              style={{ width: `${epochProgress}%` }}
             />
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-2 border-t border-border/50">
-          <span className="text-xs text-muted-foreground">Active Connections</span>
+          <span className="text-xs text-muted-foreground">Network Health</span>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-sm font-mono">{Math.round(activeConnections)}</span>
+            <span className="text-sm font-mono">Healthy</span>
           </div>
         </div>
       </CardContent>

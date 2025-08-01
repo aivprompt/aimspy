@@ -9,12 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { SpyCard } from '@/components/ui/spy-card';
 import { LatestMints } from '@/components/ui/latest-mints';
 import { 
-  NetworkActivityPanel, 
+  SolanaNetworkPanel, 
   SystemMonitorPanel, 
   SecurityStatusPanel, 
   DataProcessingPanel, 
   MarketOverviewPanel 
 } from '@/components/ui/dashboard-panels';
+import { MemeCoinFeed } from '@/components/ui/meme-coin-feed';
 import { 
   RealtimeChartPanel, 
   CircularProgressPanel, 
@@ -320,7 +321,7 @@ export const SpyDashboard: React.FC = () => {
           
           {/* Left Column - System Monitoring */}
           <div className="lg:col-span-3 space-y-4">
-            <NetworkActivityPanel />
+            <SolanaNetworkPanel />
             <SystemMonitorPanel />
             <SecurityStatusPanel />
           </div>
@@ -451,10 +452,10 @@ export const SpyDashboard: React.FC = () => {
 
           {/* Right Column - Data Processing & Analytics */}
           <div className="lg:col-span-3 space-y-4">
+            <MemeCoinFeed />
             <DataProcessingPanel />
             <MarketOverviewPanel />
             <HeatmapPanel />
-            <MiniChartGrid />
           </div>
         </div>
 

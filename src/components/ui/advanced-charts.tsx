@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CoinDetailsPopup } from '@/components/ui/coin-details-popup';
 import { cn } from '@/lib/utils';
 import { 
   TrendingUp, 
@@ -12,6 +13,7 @@ import {
   Target,
   Eye
 } from 'lucide-react';
+import type { MemeCoin } from '@/types/meme-coin';
 
 interface ChartPanelProps {
   className?: string;
@@ -248,7 +250,7 @@ export const CircularProgressPanel: React.FC<ChartPanelProps> = ({ className }) 
   );
 };
 
-interface LiveCoin {
+interface LiveCoin extends Partial<MemeCoin> {
   symbol: string;
   image: string;
   activity: number;
@@ -257,17 +259,41 @@ interface LiveCoin {
 
 export const HeatmapPanel: React.FC<ChartPanelProps> = ({ className }) => {
   const [liveCoins, setLiveCoins] = useState<LiveCoin[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
+  const [popoverOpen, setPopoverOpen] = useState(false);
 
   useEffect(() => {
     // Initialize with mock data - in real app this would fetch from MemeSpyAPI
     const generateMockCoins = (): LiveCoin[] => {
       const symbols = ['PEPE', 'DOGE', 'SHIB', 'FLOKI', 'BONK', 'WIF', 'BOME', 'MEW', 'POPCAT', 'BRETT', 'PONKE', 'MOUTAI', 'MYRO', 'SLERF', 'BODEN', 'TREMP', 'SMOG', 'PEPED', 'APED', 'NEIRO', 'MOODENG', 'GIGA', 'RETARD', 'WOJAK'];
-      return Array.from({ length: 24 }, (_, i) => ({
-        symbol: symbols[i] || `COIN${i}`,
-        image: `https://images.unsplash.com/photo-${1500000000000 + i * 1000000}?w=32&h=32&fit=crop&crop=face`,
-        activity: Math.random() * 100,
-        change24h: (Math.random() - 0.5) * 200
-      }));
+      return Array.from({ length: 24 }, (_, i) => {
+        const basePrice = Math.random() * 10;
+        const marketCap = Math.random() * 1000000000;
+        return {
+          symbol: symbols[i] || `COIN${i}`,
+          image: `https://images.unsplash.com/photo-${1500000000000 + i * 1000000}?w=32&h=32&fit=crop&crop=face`,
+          activity: Math.random() * 100,
+          change24h: (Math.random() - 0.5) * 200,
+          // Additional MemeCoin properties for popup
+          address: `${symbols[i] || `COIN${i}`}Address${i}`,
+          name: `${symbols[i] || `Coin ${i}`} Token`,
+          price: basePrice,
+          priceChange1h: (Math.random() - 0.5) * 20,
+          priceChange24h: (Math.random() - 0.5) * 200,
+          volume24h: Math.random() * 50000000,
+          liquidity: Math.random() * 10000000,
+          age: Math.random() * 2592000, // Up to 30 days
+          marketCap,
+          holders: {
+            total: Math.floor(Math.random() * 10000) + 100,
+            data: []
+          },
+          legitScore: Math.random() * 10,
+          riskScore: Math.random() * 10,
+          rewardScore: Math.random() * 10,
+          dexScreenerUrl: `https://dexscreener.com/solana/${symbols[i] || `coin${i}`}`
+        };
+      });
     };
 
     setLiveCoins(generateMockCoins());
@@ -297,6 +323,31 @@ export const HeatmapPanel: React.FC<ChartPanelProps> = ({ className }) => {
     return change >= 0 ? 'text-green-400' : 'text-red-400';
   };
 
+  const handleCoinClick = (coin: LiveCoin) => {
+    const memeCoin: MemeCoin = {
+      address: coin.address || `${coin.symbol}Address`,
+      symbol: coin.symbol,
+      name: coin.name || `${coin.symbol} Token`,
+      marketCap: coin.marketCap || Math.random() * 1000000000,
+      price: coin.price || Math.random() * 10,
+      priceChange1h: coin.priceChange1h || (Math.random() - 0.5) * 20,
+      priceChange24h: coin.priceChange24h || coin.change24h,
+      volume24h: coin.volume24h || Math.random() * 50000000,
+      liquidity: coin.liquidity || Math.random() * 10000000,
+      age: coin.age || Math.random() * 2592000,
+      holders: coin.holders || {
+        total: Math.floor(Math.random() * 10000) + 100,
+        data: []
+      },
+      legitScore: coin.legitScore || Math.random() * 10,
+      riskScore: coin.riskScore || Math.random() * 10,
+      rewardScore: coin.rewardScore || Math.random() * 10,
+      dexScreenerUrl: coin.dexScreenerUrl
+    };
+    setSelectedCoin(memeCoin);
+    setPopoverOpen(true);
+  };
+
   return (
     <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
       <CardHeader className="pb-2">
@@ -309,31 +360,41 @@ export const HeatmapPanel: React.FC<ChartPanelProps> = ({ className }) => {
       <CardContent className="space-y-3">
         <div className="grid grid-cols-6 gap-1">
           {liveCoins.map((coin, index) => (
-            <div
+            <CoinDetailsPopup
               key={`${coin.symbol}-${index}`}
-              className={cn(
-                "relative aspect-square rounded-lg border border-border/20 overflow-hidden transition-all duration-1000 hover:scale-105 cursor-pointer",
-                getActivityClass(coin.activity)
-              )}
-              title={`${coin.symbol}: ${coin.activity.toFixed(1)}% activity, ${coin.change24h > 0 ? '+' : ''}${coin.change24h.toFixed(1)}%`}
+              coin={selectedCoin as MemeCoin}
+              open={popoverOpen && selectedCoin?.symbol === coin.symbol}
+              onOpenChange={(open) => {
+                setPopoverOpen(open);
+                if (!open) setSelectedCoin(null);
+              }}
             >
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
-                <div className="w-6 h-6 rounded-full bg-muted/80 border border-border/40 flex items-center justify-center mb-1">
-                  <span className="text-[8px] font-bold text-foreground/80">
-                    {coin.symbol.slice(0, 3)}
-                  </span>
+              <div
+                className={cn(
+                  "relative aspect-square rounded-lg border border-border/20 overflow-hidden transition-all duration-1000 hover:scale-105 cursor-pointer",
+                  getActivityClass(coin.activity)
+                )}
+                onClick={() => handleCoinClick(coin)}
+                title={`${coin.symbol}: ${coin.activity.toFixed(1)}% activity, ${coin.change24h > 0 ? '+' : ''}${coin.change24h.toFixed(1)}%`}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
+                  <div className="w-6 h-6 rounded-full bg-muted/80 border border-border/40 flex items-center justify-center mb-1">
+                    <span className="text-[8px] font-bold text-foreground/80">
+                      {coin.symbol.slice(0, 3)}
+                    </span>
+                  </div>
+                  <div className={cn("text-[7px] font-mono font-bold", getChangeColor(coin.change24h))}>
+                    {coin.change24h > 0 ? '+' : ''}{coin.change24h.toFixed(0)}%
+                  </div>
                 </div>
-                <div className={cn("text-[7px] font-mono font-bold", getChangeColor(coin.change24h))}>
-                  {coin.change24h > 0 ? '+' : ''}{coin.change24h.toFixed(0)}%
-                </div>
+                
+                {/* Activity intensity overlay */}
+                <div 
+                  className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"
+                  style={{ opacity: Math.max(0.2, coin.activity / 100) }}
+                />
               </div>
-              
-              {/* Activity intensity overlay */}
-              <div 
-                className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"
-                style={{ opacity: Math.max(0.2, coin.activity / 100) }}
-              />
-            </div>
+            </CoinDetailsPopup>
           ))}
         </div>
 
