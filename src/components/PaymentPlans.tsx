@@ -12,7 +12,7 @@ const plans = [
     id: 'trial',
     name: '10-Day Trial',
     price: '$9.95',
-    priceId: 'price_test_trial_10_day', // Replace with your test price ID
+    priceId: 'price_1RrABiDnkc0bvj3EYuIiq1E0',
     description: 'Perfect for indie filmmakers and content creators getting started',
     features: [
       'Access to all spy features',
@@ -27,7 +27,7 @@ const plans = [
     id: 'monthly',
     name: 'Monthly Plan',
     price: '$19.95',
-    priceId: 'price_test_monthly_plan', // Replace with your test price ID
+    priceId: 'price_1RrACmDnkc0bvj3E9RDIWicO',
     description: 'For professional directors and production companies',
     features: [
       'Unlimited spy scans',
@@ -42,7 +42,7 @@ const plans = [
     id: 'annual',
     name: 'Annual Plan',
     price: '$149.95',
-    priceId: 'price_test_annual_plan', // Replace with your test price ID
+    priceId: 'price_1RrADgDnkc0bvj3EH15cV8pU',
     description: 'Complete studio-grade solution for large productions',
     features: [
       'Everything in Monthly',
