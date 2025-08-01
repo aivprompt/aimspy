@@ -459,84 +459,79 @@ export const SpyDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Secondary Dashboard Grid - Targets and Live Data */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          
-          {/* Badges Display */}
-          {profile.badges.some(b => b.earned) && (
-            <div className="lg:col-span-1">
-              <Card className="spy-border bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <Trophy className="h-4 w-4 text-primary" />
-                    Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-2 flex-wrap">
-                    {profile.badges
-                      .filter(badge => badge.earned)
-                      .map(badge => (
-                        <Badge key={badge.id} className="spy-gradient text-white text-xs">
-                          {badge.icon} {badge.name}
-                        </Badge>
-                      ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+        {/* Achievements Section */}
+        {profile.badges.some(b => b.earned) && (
+          <Card className="spy-border bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                Achievements
+                <Badge variant="outline" className="ml-auto">
+                  {profile.badges.filter(b => b.earned).length} earned
+                </Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 flex-wrap">
+                {profile.badges
+                  .filter(badge => badge.earned)
+                  .map(badge => (
+                    <Badge key={badge.id} className="spy-gradient text-white">
+                      {badge.icon} {badge.name}
+                    </Badge>
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Top 3 Targets */}
-          {displayCoins.length > 0 && (
-            <div className={cn("lg:col-span-3", !profile.badges.some(b => b.earned) && "lg:col-span-4")}>
-              <Card className="spy-border bg-card/50 backdrop-blur-sm">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="h-5 w-5 text-primary" />
-                      Priority Targets
-                      <Badge variant="outline">{displayCoins.length}/3 slots</Badge>
-                      {pinnedCoins.size > 0 && (
-                        <Badge className="spy-gradient">
-                          <Pin className="h-3 w-3 mr-1" />
-                          {pinnedCoins.size} pinned
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    
-                    {displayCoins.length > 0 && (
-                      <Button
-                        onClick={refreshUnpinnedTargets}
-                        disabled={isScanning}
-                        variant="outline"
-                        size="sm"
-                        className="spy-border"
-                      >
-                        <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
-                        Refresh
-                      </Button>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {displayCoins.slice(0, 3).map(coin => (
-                      <SpyCard
-                        key={coin.address}
-                        coin={coin}
-                        onScan={handleCoinScan}
-                        onTogglePin={() => togglePinCoin(coin.address)}
-                        isPinned={pinnedCoins.has(coin.address)}
-                        isScanning={selectedCoin?.address === coin.address}
-                      />
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </div>
+        {/* Priority Targets - Full Width */}
+        {displayCoins.length > 0 && (
+          <Card className="spy-border bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Priority Targets
+                  <Badge variant="outline">{displayCoins.length}/3 slots</Badge>
+                  {pinnedCoins.size > 0 && (
+                    <Badge className="spy-gradient">
+                      <Pin className="h-3 w-3 mr-1" />
+                      {pinnedCoins.size} pinned
+                    </Badge>
+                  )}
+                </CardTitle>
+                
+                {displayCoins.length > 0 && (
+                  <Button
+                    onClick={refreshUnpinnedTargets}
+                    disabled={isScanning}
+                    variant="outline"
+                    size="sm"
+                    className="spy-border"
+                  >
+                    <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
+                    Refresh
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {displayCoins.slice(0, 3).map(coin => (
+                  <SpyCard
+                    key={coin.address}
+                    coin={coin}
+                    onScan={handleCoinScan}
+                    onTogglePin={() => togglePinCoin(coin.address)}
+                    isPinned={pinnedCoins.has(coin.address)}
+                    isScanning={selectedCoin?.address === coin.address}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Latest Mints Section */}
         {latestCoins.length > 0 && (
