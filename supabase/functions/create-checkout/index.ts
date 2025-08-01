@@ -24,7 +24,18 @@ serve(async (req) => {
     if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Stripe key verified");
 
-    const { priceId, planType } = await req.json();
+    // Parse request body safely
+    let requestBody;
+    try {
+      const body = await req.text();
+      logStep("Raw request body", { body });
+      requestBody = body ? JSON.parse(body) : {};
+    } catch (parseError) {
+      logStep("JSON parse error", { error: parseError.message });
+      throw new Error(`Invalid JSON in request body: ${parseError.message}`);
+    }
+
+    const { priceId, planType } = requestBody;
     if (!priceId) throw new Error("Price ID is required");
     logStep("Request data", { priceId, planType });
 
