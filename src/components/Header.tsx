@@ -14,22 +14,14 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* AIMS Logo */}
           <div 
-            className="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-4"
+            className="cursor-pointer hover:opacity-80 transition-opacity"
             onClick={() => navigate('/')}
           >
             <img 
               src="/lovable-uploads/26518dff-2060-465c-a043-13879174ca6e.png" 
               alt="AIMS Logo" 
-              className="w-16 h-16 object-contain"
+              className="w-48 h-48 object-contain"
             />
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-yellow-400 tracking-wider">
-                AIMS
-              </h1>
-              <p className="text-xs text-gray-400 tracking-wide mt-1">
-                (ai-meme-spy)
-              </p>
-            </div>
           </div>
 
           {/* Navigation */}
