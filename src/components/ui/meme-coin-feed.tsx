@@ -103,7 +103,7 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
         {coins.map((coin, index) => (
           <CoinDetailsPopup
             key={`${coin.symbol}-${index}`}
-            coin={selectedCoin as MemeCoin}
+            coin={selectedCoin}
             open={popoverOpen && selectedCoin?.symbol === coin.symbol}
             onOpenChange={(open) => {
               setPopoverOpen(open);

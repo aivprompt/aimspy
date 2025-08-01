@@ -19,7 +19,7 @@ import {
 import type { MemeCoin } from '@/types/meme-coin';
 
 interface CoinDetailsPopupProps {
-  coin: MemeCoin;
+  coin: MemeCoin | null;
   children: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -55,6 +55,11 @@ export const CoinDetailsPopup: React.FC<CoinDetailsPopupProps> = ({
     if (score <= 8) return { label: 'High', color: 'text-orange-500' };
     return { label: 'Very High', color: 'text-red-500' };
   };
+
+  // Early return if no coin is provided
+  if (!coin) {
+    return null;
+  }
 
   const riskLevel = getRiskLevel(coin.riskScore);
 
