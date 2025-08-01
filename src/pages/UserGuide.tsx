@@ -120,7 +120,7 @@ const UserGuide = () => {
                     onClick={() => scrollToSection('deep-scan')}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Deep Scan Mastery
+                     AIMS Deep Scan
                   </Button>
                   <Button 
                     variant="ghost" 
@@ -278,7 +278,7 @@ const UserGuide = () => {
           <section id="deep-scan">
             <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
               <Eye className="h-8 w-8 text-primary" />
-              Deep Scan Mastery
+              AIMS Deep Scan
             </h2>
             
             <Card className="mb-6">
