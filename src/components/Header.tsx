@@ -35,7 +35,7 @@ export const Header = () => {
               className="bg-gray-700 text-white hover:bg-gray-600 px-6 py-2 rounded-md font-medium"
               onClick={() => window.location.href = '/features'}
             >
-              Studio
+              AIMS
             </Button>
             
             <Button 
