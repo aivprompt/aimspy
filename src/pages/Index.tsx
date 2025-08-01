@@ -39,17 +39,20 @@ const Index = () => {
       <Header />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
-        <div className="relative mx-auto max-w-7xl text-center">
+      <section className="relative overflow-hidden">
+        <div className="relative">
           
           {/* Video Placeholder */}
-          <div className="mb-8">
+          <div>
             <img 
               src="/lovable-uploads/d9771f59-3d9c-476a-8814-f520266907b8.png" 
               alt="Meme Coin Ecosystem - Solana Network" 
-              className="mx-auto max-w-full h-auto rounded-lg shadow-2xl"
+              className="w-full h-auto"
             />
           </div>
+        </div>
+        
+        <div className="relative mx-auto max-w-7xl text-center py-20 px-4 sm:px-6 lg:px-8">
           
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
             Advanced Intelligence for 
