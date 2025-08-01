@@ -41,9 +41,6 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
         <div className="relative mx-auto max-w-7xl text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            AIMS
-          </h1>
           
           {/* Video Placeholder */}
           <div className="mb-8">

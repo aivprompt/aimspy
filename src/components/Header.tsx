@@ -10,7 +10,7 @@ export const Header = () => {
 
   return (
     <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
           {/* AIMS Logo */}
           <div 
