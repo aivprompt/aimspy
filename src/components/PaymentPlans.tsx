@@ -75,11 +75,14 @@ export const PaymentPlans = () => {
       }
 
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: {
+        body: JSON.stringify({
           priceId: plan.priceId,
           planType: plan.planType
-        },
-        headers
+        }),
+        headers: {
+          ...headers,
+          'Content-Type': 'application/json'
+        }
       });
 
       if (error) throw error;
