@@ -42,18 +42,30 @@ const Index = () => {
       <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
         <div className="relative mx-auto max-w-7xl text-center">
           <h1 className="text-5xl md:text-7xl font-bold text-white mb-6">
-            Advanced Intelligence for 
-            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"> Meme Coin Success</span>
+            AIMS
           </h1>
           
-          {/* Video Placeholder */}
-          <div className="mb-8">
+          {/* Video Placeholder with AIMS Logo Overlay */}
+          <div className="mb-8 relative">
             <img 
               src="/lovable-uploads/d9771f59-3d9c-476a-8814-f520266907b8.png" 
               alt="Meme Coin Ecosystem - Solana Network" 
               className="mx-auto max-w-full h-auto rounded-lg shadow-2xl"
             />
+            {/* AIMS Logo Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <img 
+                src="/lovable-uploads/26518dff-2060-465c-a043-13879174ca6e.png" 
+                alt="AIMS Logo" 
+                className="w-64 h-64 md:w-80 md:h-80 object-contain"
+              />
+            </div>
           </div>
+          
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+            Advanced Intelligence for 
+            <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent"> Meme Coin Success</span>
+          </h2>
           
           <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-4xl mx-auto">
             AIMS harnesses cutting-edge AI to analyze meme coins in real-time, providing you with the intelligence needed to navigate the volatile world of cryptocurrency with confidence.
