@@ -248,76 +248,115 @@ export const CircularProgressPanel: React.FC<ChartPanelProps> = ({ className }) 
   );
 };
 
+interface LiveCoin {
+  symbol: string;
+  image: string;
+  activity: number;
+  change24h: number;
+}
+
 export const HeatmapPanel: React.FC<ChartPanelProps> = ({ className }) => {
-  const [heatmapData, setHeatmapData] = useState<number[][]>([]);
+  const [liveCoins, setLiveCoins] = useState<LiveCoin[]>([]);
 
   useEffect(() => {
-    // Initialize heatmap data
-    const initData = Array.from({ length: 8 }, () =>
-      Array.from({ length: 12 }, () => Math.random())
-    );
-    setHeatmapData(initData);
+    // Initialize with mock data - in real app this would fetch from MemeSpyAPI
+    const generateMockCoins = (): LiveCoin[] => {
+      const symbols = ['PEPE', 'DOGE', 'SHIB', 'FLOKI', 'BONK', 'WIF', 'BOME', 'MEW', 'POPCAT', 'BRETT', 'PONKE', 'MOUTAI', 'MYRO', 'SLERF', 'BODEN', 'TREMP', 'SMOG', 'PEPED', 'APED', 'NEIRO', 'MOODENG', 'GIGA', 'RETARD', 'WOJAK'];
+      return Array.from({ length: 24 }, (_, i) => ({
+        symbol: symbols[i] || `COIN${i}`,
+        image: `https://images.unsplash.com/photo-${1500000000000 + i * 1000000}?w=32&h=32&fit=crop&crop=face`,
+        activity: Math.random() * 100,
+        change24h: (Math.random() - 0.5) * 200
+      }));
+    };
+
+    setLiveCoins(generateMockCoins());
 
     const interval = setInterval(() => {
-      setHeatmapData(prev => 
-        prev.map(row =>
-          row.map(cell => Math.max(0, Math.min(1, cell + (Math.random() - 0.5) * 0.2)))
-        )
+      setLiveCoins(prev => 
+        prev.map(coin => ({
+          ...coin,
+          activity: Math.max(0, Math.min(100, coin.activity + (Math.random() - 0.5) * 20)),
+          change24h: Math.max(-100, Math.min(100, coin.change24h + (Math.random() - 0.5) * 20))
+        }))
       );
-    }, 4000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
 
-  const getIntensityColor = (value: number) => {
-    const intensity = Math.round(value * 100);
-    if (intensity > 80) return 'bg-red-500';
-    if (intensity > 60) return 'bg-orange-500';
-    if (intensity > 40) return 'bg-yellow-500';
-    if (intensity > 20) return 'bg-green-500';
-    return 'bg-blue-500';
+  const getActivityClass = (activity: number) => {
+    if (activity > 80) return 'bg-red-500/80 animate-pulse';
+    if (activity > 60) return 'bg-orange-500/70';
+    if (activity > 40) return 'bg-yellow-500/60';
+    if (activity > 20) return 'bg-green-500/50';
+    return 'bg-blue-500/40';
+  };
+
+  const getChangeColor = (change: number) => {
+    return change >= 0 ? 'text-green-400' : 'text-red-400';
   };
 
   return (
     <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <BarChart3 className="h-4 w-4 text-primary" />
-          Activity Heatmap
-          <Badge variant="outline" className="ml-auto">24h</Badge>
+          <BarChart3 className="h-4 w-4 text-primary animate-pulse" />
+          Live Meme Coin Activity
+          <Badge variant="outline" className="ml-auto animate-pulse">LIVE</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-12 gap-0.5">
-          {heatmapData.map((row, rowIndex) =>
-            row.map((cell, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={cn(
-                  "aspect-square rounded-sm transition-all duration-1000",
-                  getIntensityColor(cell)
-                )}
-                style={{ opacity: 0.3 + cell * 0.7 }}
+        <div className="grid grid-cols-6 gap-1">
+          {liveCoins.map((coin, index) => (
+            <div
+              key={`${coin.symbol}-${index}`}
+              className={cn(
+                "relative aspect-square rounded-lg border border-border/20 overflow-hidden transition-all duration-1000 hover:scale-105 cursor-pointer",
+                getActivityClass(coin.activity)
+              )}
+              title={`${coin.symbol}: ${coin.activity.toFixed(1)}% activity, ${coin.change24h > 0 ? '+' : ''}${coin.change24h.toFixed(1)}%`}
+            >
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-1">
+                <div className="w-6 h-6 rounded-full bg-muted/80 border border-border/40 flex items-center justify-center mb-1">
+                  <span className="text-[8px] font-bold text-foreground/80">
+                    {coin.symbol.slice(0, 3)}
+                  </span>
+                </div>
+                <div className={cn("text-[7px] font-mono font-bold", getChangeColor(coin.change24h))}>
+                  {coin.change24h > 0 ? '+' : ''}{coin.change24h.toFixed(0)}%
+                </div>
+              </div>
+              
+              {/* Activity intensity overlay */}
+              <div 
+                className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent"
+                style={{ opacity: Math.max(0.2, coin.activity / 100) }}
               />
-            ))
-          )}
+            </div>
+          ))}
         </div>
 
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Low Activity</span>
+          <span className="text-muted-foreground">Cool</span>
           <div className="flex gap-1">
-            {['bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-orange-500', 'bg-red-500'].map((color, index) => (
-              <div key={index} className={cn("w-3 h-3 rounded-sm", color)} style={{ opacity: 0.5 + index * 0.1 }} />
-            ))}
+            <div className="w-3 h-3 rounded-sm bg-blue-500/40" />
+            <div className="w-3 h-3 rounded-sm bg-green-500/50" />
+            <div className="w-3 h-3 rounded-sm bg-yellow-500/60" />
+            <div className="w-3 h-3 rounded-sm bg-orange-500/70" />
+            <div className="w-3 h-3 rounded-sm bg-red-500/80 animate-pulse" />
           </div>
-          <span className="text-muted-foreground">High Activity</span>
+          <span className="text-muted-foreground">Hot 🔥</span>
         </div>
 
         <div className="pt-2 border-t border-border/50">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Peak Activity</span>
-            <span className="font-mono">
-              {Math.round(Math.max(...heatmapData.flat()) * 100)}%
+            <span className="text-muted-foreground">Hottest Coin</span>
+            <span className="font-mono text-red-400">
+              {liveCoins.reduce((hottest, coin) => 
+                coin.activity > hottest.activity ? coin : hottest, 
+                liveCoins[0] || { symbol: 'N/A', activity: 0 }
+              ).symbol}
             </span>
           </div>
         </div>
