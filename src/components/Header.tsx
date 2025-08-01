@@ -10,13 +10,18 @@ export const Header = () => {
 
   return (
     <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-6">
+      <div className="container mx-auto px-6 py-8">
         <div className="flex items-center justify-between">
           {/* AIMS Logo */}
           <div 
-            className="cursor-pointer hover:opacity-80 transition-opacity"
+            className="cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-4"
             onClick={() => navigate('/')}
           >
+            <img 
+              src="/lovable-uploads/26518dff-2060-465c-a043-13879174ca6e.png" 
+              alt="AIMS Logo" 
+              className="w-16 h-16 object-contain"
+            />
             <div className="text-center">
               <h1 className="text-3xl font-bold text-yellow-400 tracking-wider">
                 AIMS

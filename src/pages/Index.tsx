@@ -45,21 +45,13 @@ const Index = () => {
             AIMS
           </h1>
           
-          {/* Video Placeholder with AIMS Logo Overlay */}
-          <div className="mb-8 relative">
+          {/* Video Placeholder */}
+          <div className="mb-8">
             <img 
               src="/lovable-uploads/d9771f59-3d9c-476a-8814-f520266907b8.png" 
               alt="Meme Coin Ecosystem - Solana Network" 
               className="mx-auto max-w-full h-auto rounded-lg shadow-2xl"
             />
-            {/* AIMS Logo Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <img 
-                src="/lovable-uploads/26518dff-2060-465c-a043-13879174ca6e.png" 
-                alt="AIMS Logo" 
-                className="w-64 h-64 md:w-80 md:h-80 object-contain"
-              />
-            </div>
           </div>
           
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
