@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ const plans = [
     id: 'trial',
     name: '10-Day Trial',
     price: '$9.95',
-    priceId: 'price_1Rr1mNDnkc0bvj3EtdR386XE',
+    priceId: 'price_test_trial_10_day', // Replace with your test price ID
     description: 'Perfect for testing our AI meme spy features',
     features: [
       'Access to all spy features',
@@ -26,7 +27,7 @@ const plans = [
     id: 'monthly',
     name: 'Monthly Plan',
     price: '$29.95',
-    priceId: 'price_1Rr1VFDnkc0bvj3EPuLbPFaM',
+    priceId: 'price_test_monthly_plan', // Replace with your test price ID
     description: 'Full access with monthly billing',
     features: [
       'Unlimited spy scans',
@@ -41,7 +42,7 @@ const plans = [
     id: 'annual',
     name: 'Annual Plan',
     price: '$299.95',
-    priceId: 'price_1Rr1ZgDnkc0bvj3EoOvbpOqT',
+    priceId: 'price_test_annual_plan', // Replace with your test price ID
     description: 'Best value with yearly billing',
     features: [
       'Everything in Monthly',
@@ -95,6 +96,11 @@ export const PaymentPlans = () => {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
         <p className="text-muted-foreground">Start with our trial or go full premium</p>
+        <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">
+            <strong>Note:</strong> These are placeholder test price IDs. Please create test prices in your Stripe dashboard and replace the priceId values above.
+          </p>
+        </div>
       </div>
       
       <div className="grid md:grid-cols-3 gap-6">
