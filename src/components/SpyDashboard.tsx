@@ -8,6 +8,19 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { SpyCard } from '@/components/ui/spy-card';
 import { LatestMints } from '@/components/ui/latest-mints';
+import { 
+  NetworkActivityPanel, 
+  SystemMonitorPanel, 
+  SecurityStatusPanel, 
+  DataProcessingPanel, 
+  MarketOverviewPanel 
+} from '@/components/ui/dashboard-panels';
+import { 
+  RealtimeChartPanel, 
+  CircularProgressPanel, 
+  HeatmapPanel, 
+  MiniChartGrid 
+} from '@/components/ui/advanced-charts';
 import { useToast } from '@/hooks/use-toast';
 import { MemeSpyAPI } from '@/services/api';
 import { GameService } from '@/services/game';
@@ -31,7 +44,15 @@ import {
   X,
   ExternalLink,
   Droplets,
-  Calendar
+  Calendar,
+  Command,
+  BarChart3,
+  Cpu,
+  Globe,
+  Radar,
+  Monitor,
+  Eye,
+  Settings
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -278,226 +299,266 @@ export const SpyDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="p-4 space-y-6">
+      <div className="p-4 space-y-4">
 
-      {/* Profile & Controls */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Spy Profile */}
-        <Card className="spy-border glow-green">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-spy-green" />
-              Agent Profile
+        {/* Command Center Header */}
+        <Card className="spy-border bg-card/30 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <Command className="h-8 w-8 text-primary animate-pulse" />
+              AIMS Command Center
+              <Badge variant="outline" className="ml-auto">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
+                System Online
+              </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Level {profile.level} Spy</span>
-              <Badge className="spy-gradient">{profile.spyPoints} Points</Badge>
-            </div>
+        </Card>
+
+        {/* Main Dashboard Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          {/* Left Column - System Monitoring */}
+          <div className="lg:col-span-3 space-y-4">
+            <NetworkActivityPanel />
+            <SystemMonitorPanel />
+            <SecurityStatusPanel />
+          </div>
+
+          {/* Center Column - Main Analytics */}
+          <div className="lg:col-span-6 space-y-4">
             
-            <div className="space-y-2">
-              <Label>Available Cashflow</Label>
-              <Input
-                type="number"
-                value={profile.cashflow}
-                onChange={(e) => handleProfileUpdate({ cashflow: Number(e.target.value) })}
-                className="spy-border"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Risk Tolerance: {getRiskToleranceLabel(profile.riskTolerance)}</Label>
-              <Slider
-                value={[profile.riskTolerance]}
-                onValueChange={(value) => handleProfileUpdate({ riskTolerance: value[0] })}
-                max={5}
-                min={1}
-                step={1}
-                className="py-4"
-              />
-            </div>
-
-            <div className="text-sm text-muted-foreground">
-              <p>Total Scanned: {profile.totalScanned} coins</p>
-              <p>Badges Earned: {profile.badges.filter(b => b.earned).length}/{profile.badges.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mission Control */}
-        <Card className="spy-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-spy-blue" />
-              Mission Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button
-              onClick={handleScan}
-              disabled={isScanning}
-              className="w-full spy-gradient hover:opacity-90"
-              size="lg"
-            >
-              {isScanning ? (
-                <>
-                  <Activity className="h-4 w-4 mr-2 animate-spin" />
-                  Scanning Network...
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4 mr-2" />
-                  Start Mission
-                </>
-              )}
-            </Button>
-
-            {lastScan && (
-              <p className="text-sm text-muted-foreground text-center">
-                Last scan: {lastScan.toLocaleTimeString()}
-              </p>
-            )}
-
-            {scanResult && (
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <div className="text-center p-2 spy-border rounded">
-                  <p className="font-bold text-spy-green">{scanResult.legitimateCoins}</p>
-                  <p className="text-xs">Legitimate</p>
-                </div>
-                <div className="text-center p-2 spy-border rounded">
-                  <p className="font-bold text-spy-red">{scanResult.dangerousCoins}</p>
-                  <p className="text-xs">High Risk</p>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Quick Stats */}
-        <Card className="spy-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-spy-yellow" />
-              Intel Summary
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {topCoins.length > 0 ? (
-              <>
-                <div className="text-sm">
-                  <p className="font-medium text-spy-green">🎯 Top Recommendations:</p>
-                  {topCoins.map((coin, index) => (
-                    <div key={coin.address} className="flex justify-between py-1">
-                      <span className="truncate">{coin.symbol}</span>
-                      <span className="text-spy-green">{formatMoney(coin.recommendation?.suggestedAmount || 0)}</span>
-                    </div>
-                  ))}
-                </div>
-                
-                <div className="pt-2 border-t border-border">
-                  <p className="text-xs text-muted-foreground">
-                    Total suggested allocation: {formatMoney(topCoins.reduce((sum, coin) => sum + (coin.recommendation?.suggestedAmount || 0), 0))}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="text-center text-muted-foreground">
-                <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
-                <p className="text-sm">No investment opportunities detected</p>
-                <p className="text-xs">Run a scan to find meme coins</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Badges Display */}
-      {profile.badges.some(b => b.earned) && (
-        <Card className="spy-border">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-spy-yellow" />
-              Agent Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-2 flex-wrap">
-              {profile.badges
-                .filter(badge => badge.earned)
-                .map(badge => (
-                  <Badge key={badge.id} className="spy-gradient text-white">
-                    {badge.icon} {badge.name}
+            {/* Mission Control Panel */}
+            <Card className="spy-border bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-primary" />
+                  Mission Control
+                  <Badge variant="outline" className="ml-auto">
+                    {isScanning ? "Scanning..." : "Ready"}
                   </Badge>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  onClick={handleScan}
+                  disabled={isScanning}
+                  className="w-full spy-gradient hover:opacity-90 text-lg py-6"
+                  size="lg"
+                >
+                  {isScanning ? (
+                    <>
+                      <Radar className="h-5 w-5 mr-3 animate-spin" />
+                      Scanning Network...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-5 w-5 mr-3" />
+                      Initiate Deep Scan
+                    </>
+                  )}
+                </Button>
 
-      {/* Top 6 Targets */}
-      {displayCoins.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl font-bold flex items-center gap-2">
-                  <Target className="h-6 w-6 text-spy-green" />
-                  Top 3 Targets
-                </h2>
-                <Badge variant="outline">{displayCoins.length}/3 slots</Badge>
-              {pinnedCoins.size > 0 && (
-                <Badge className="spy-gradient">
-                  <Pin className="h-3 w-3 mr-1" />
-                  {pinnedCoins.size} pinned
+                {scanResult && (
+                  <div className="grid grid-cols-4 gap-2 text-sm">
+                    <div className="text-center p-3 spy-border rounded bg-background/50">
+                      <p className="font-bold text-primary text-lg">{scanResult.totalScanned}</p>
+                      <p className="text-xs text-muted-foreground">Total</p>
+                    </div>
+                    <div className="text-center p-3 spy-border rounded bg-background/50">
+                      <p className="font-bold text-green-500 text-lg">{scanResult.legitimateCoins}</p>
+                      <p className="text-xs text-muted-foreground">Safe</p>
+                    </div>
+                    <div className="text-center p-3 spy-border rounded bg-background/50">
+                      <p className="font-bold text-red-500 text-lg">{scanResult.dangerousCoins}</p>
+                      <p className="text-xs text-muted-foreground">Risk</p>
+                    </div>
+                    <div className="text-center p-3 spy-border rounded bg-background/50">
+                      <p className="font-bold text-yellow-500 text-lg">{scanResult.newFinds}</p>
+                      <p className="text-xs text-muted-foreground">New</p>
+                    </div>
+                  </div>
+                )}
+
+                {lastScan && (
+                  <div className="text-center py-2 border-t border-border/50">
+                    <p className="text-sm text-muted-foreground">
+                      Last scan: {lastScan.toLocaleTimeString()}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Charts Row */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <RealtimeChartPanel />
+              <CircularProgressPanel />
+            </div>
+
+            {/* Agent Profile - Redesigned */}
+            <Card className="spy-border bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  Agent Profile
+                  <Badge className="spy-gradient ml-auto">
+                    Level {profile.level} • {profile.spyPoints} Points
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Available Cashflow</Label>
+                    <Input
+                      type="number"
+                      value={profile.cashflow}
+                      onChange={(e) => handleProfileUpdate({ cashflow: Number(e.target.value) })}
+                      className="spy-border bg-background/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">
+                      Risk Tolerance: {getRiskToleranceLabel(profile.riskTolerance)}
+                    </Label>
+                    <Slider
+                      value={[profile.riskTolerance]}
+                      onValueChange={(value) => handleProfileUpdate({ riskTolerance: value[0] })}
+                      max={5}
+                      min={1}
+                      step={1}
+                      className="py-2"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-primary">{profile.totalScanned}</div>
+                    <div className="text-xs text-muted-foreground">Coins Scanned</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-primary">
+                      {profile.badges.filter(b => b.earned).length}
+                    </div>
+                    <div className="text-xs text-muted-foreground">Badges Earned</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Data Processing & Analytics */}
+          <div className="lg:col-span-3 space-y-4">
+            <DataProcessingPanel />
+            <MarketOverviewPanel />
+            <HeatmapPanel />
+            <MiniChartGrid />
+          </div>
+        </div>
+
+        {/* Secondary Dashboard Grid - Targets and Live Data */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+          
+          {/* Badges Display */}
+          {profile.badges.some(b => b.earned) && (
+            <div className="lg:col-span-1">
+              <Card className="spy-border bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Trophy className="h-4 w-4 text-primary" />
+                    Achievements
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2 flex-wrap">
+                    {profile.badges
+                      .filter(badge => badge.earned)
+                      .map(badge => (
+                        <Badge key={badge.id} className="spy-gradient text-white text-xs">
+                          {badge.icon} {badge.name}
+                        </Badge>
+                      ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Top 3 Targets */}
+          {displayCoins.length > 0 && (
+            <div className={cn("lg:col-span-3", !profile.badges.some(b => b.earned) && "lg:col-span-4")}>
+              <Card className="spy-border bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="h-5 w-5 text-primary" />
+                      Priority Targets
+                      <Badge variant="outline">{displayCoins.length}/3 slots</Badge>
+                      {pinnedCoins.size > 0 && (
+                        <Badge className="spy-gradient">
+                          <Pin className="h-3 w-3 mr-1" />
+                          {pinnedCoins.size} pinned
+                        </Badge>
+                      )}
+                    </CardTitle>
+                    
+                    {displayCoins.length > 0 && (
+                      <Button
+                        onClick={refreshUnpinnedTargets}
+                        disabled={isScanning}
+                        variant="outline"
+                        size="sm"
+                        className="spy-border"
+                      >
+                        <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
+                        Refresh
+                      </Button>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {displayCoins.slice(0, 3).map(coin => (
+                      <SpyCard
+                        key={coin.address}
+                        coin={coin}
+                        onScan={handleCoinScan}
+                        onTogglePin={() => togglePinCoin(coin.address)}
+                        isPinned={pinnedCoins.has(coin.address)}
+                        isScanning={selectedCoin?.address === coin.address}
+                      />
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
+
+        {/* Latest Mints Section */}
+        {latestCoins.length > 0 && (
+          <Card className="spy-border bg-card/50 backdrop-blur-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-primary animate-pulse" />
+                Fresh Mints
+                <Badge variant="outline">Live Feed</Badge>
+                <Badge className="ml-auto">
+                  {latestCoins.length} Active
                 </Badge>
-              )}
-            </div>
-            
-            {displayCoins.length > 0 && (
-              <Button
-                onClick={refreshUnpinnedTargets}
-                disabled={isScanning}
-                variant="outline"
-                size="sm"
-                className="spy-border"
-              >
-                <RefreshCw className={cn("h-4 w-4 mr-2", isScanning && "animate-spin")} />
-                Refresh Unpinned
-              </Button>
-            )}
-          </div>
-          
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayCoins.slice(0, 3).map(coin => (
-              <SpyCard
-                key={coin.address}
-                coin={coin}
-                onScan={handleCoinScan}
-                onTogglePin={() => togglePinCoin(coin.address)}
-                isPinned={pinnedCoins.has(coin.address)}
-                isScanning={selectedCoin?.address === coin.address}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LatestMints
+                coins={latestCoins}
+                onSelectCoin={handleSelectCoinFromMints}
+                className="max-w-full"
               />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Latest Mints */}
-      {latestCoins.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2 mb-4">
-            <Zap className="h-6 w-6 text-spy-yellow animate-pulse" />
-            Fresh Mints
-            <Badge variant="outline">Live Feed</Badge>
-          </h2>
-          
-          <LatestMints
-            coins={latestCoins}
-            onSelectCoin={handleSelectCoinFromMints}
-            className="max-w-full"
-          />
-        </div>
-      )}
+            </CardContent>
+          </Card>
+        )}
 
       {/* Deep Scan Results Modal */}
       <Dialog open={showDeepScanModal} onOpenChange={setShowDeepScanModal}>
