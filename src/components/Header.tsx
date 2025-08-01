@@ -10,7 +10,7 @@ export const Header = () => {
 
   return (
     <header className="bg-gray-900 border-b border-gray-700 sticky top-0 z-50">
-      <div className="container mx-auto px-6 py-3">
+      <div className="container mx-auto px-6 py-1">
         <div className="flex items-center justify-between">
           {/* AIMS Logo */}
           <div 
@@ -18,9 +18,9 @@ export const Header = () => {
             onClick={() => navigate('/')}
           >
             <img 
-              src="/lovable-uploads/06710f62-428d-439d-95c1-7973e23f94e1.png" 
+              src="/lovable-uploads/1d157a3f-9ad1-4f67-baa7-79e14dba10fb.png" 
               alt="AIMS Logo" 
-              className="w-48 h-48 object-contain"
+              className="w-72 h-32 object-contain"
             />
           </div>
 
