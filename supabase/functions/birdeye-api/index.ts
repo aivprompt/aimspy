@@ -24,6 +24,8 @@ serve(async (req) => {
       });
     }
 
+    console.log(`Using Birdeye API key: ${birdeyeApiKey.substring(0, 8)}...`);
+
     const url = new URL(req.url);
     const tokens = url.searchParams.get('tokens');
     
@@ -39,27 +41,60 @@ serve(async (req) => {
 
     console.log(`Fetching Birdeye data for tokens: ${tokens}`);
 
-    // Split tokens and fetch data for each
-    const tokenAddresses = tokens.split(',').slice(0, 10); // Limit to 10 tokens
+    // Test API connection first
+    try {
+      console.log('Testing Birdeye API connection...');
+      const testResponse = await fetch('https://public-api.birdeye.so/defi/networks', {
+        headers: {
+          'accept': 'application/json',
+          'X-API-KEY': birdeyeApiKey,
+        },
+      });
+      console.log(`Test API status: ${testResponse.status}`);
+      
+      if (!testResponse.ok) {
+        const errorText = await testResponse.text();
+        console.error(`Test API failed: ${testResponse.status} - ${errorText}`);
+        throw new Error(`API key validation failed: ${testResponse.status}`);
+      }
+      
+      const testData = await testResponse.json();
+      console.log('Test API success:', testData.success);
+    } catch (error) {
+      console.error('Birdeye API test failed:', error);
+      return new Response(JSON.stringify({ 
+        error: `API key validation failed: ${error.message}`,
+        success: false 
+      }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Split tokens and fetch data for each (limit to 5 to avoid rate limiting)
+    const tokenAddresses = tokens.split(',').slice(0, 5);
     const tokenData = [];
 
     for (const tokenAddress of tokenAddresses) {
       try {
         console.log(`Fetching data for token: ${tokenAddress}`);
         
-        // Birdeye token overview API
+        // Use Birdeye's token overview API
         const response = await fetch(
           `https://public-api.birdeye.so/defi/token_overview?address=${tokenAddress.trim()}`,
           {
             headers: {
+              'accept': 'application/json',
               'X-API-KEY': birdeyeApiKey,
             },
           }
         );
 
+        console.log(`Token ${tokenAddress} API status: ${response.status}`);
+
         if (response.ok) {
           const data = await response.json();
-          console.log(`Token ${tokenAddress} data:`, data);
+          console.log(`Token ${tokenAddress} response:`, data);
           
           if (data.success && data.data) {
             const token = data.data;
@@ -74,16 +109,20 @@ serve(async (req) => {
               marketCap: token.mc || 0,
               liquidity: token.liquidity || 0,
             });
+            console.log(`Successfully processed token: ${token.symbol}`);
+          } else {
+            console.warn(`No data returned for ${tokenAddress}`);
           }
         } else {
-          console.warn(`Failed to fetch data for ${tokenAddress}: ${response.status}`);
+          const errorText = await response.text();
+          console.error(`Failed to fetch data for ${tokenAddress}: ${response.status} - ${errorText}`);
         }
       } catch (error) {
         console.error(`Error fetching data for ${tokenAddress}:`, error);
       }
       
-      // Small delay to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Delay to avoid rate limiting
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
 
     console.log(`Successfully fetched data for ${tokenData.length} tokens`);
