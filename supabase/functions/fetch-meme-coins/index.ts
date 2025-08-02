@@ -13,40 +13,39 @@ serve(async (req) => {
     console.log("Fetching live Solana meme coins...")
     
     let allPairs: any[] = [];
+    let dataSource = 'unknown';
     
-    // Try CoinGecko API first (most reliable for live data)
+    // Try CoinGecko simple price endpoint (more reliable than trending)
     try {
-      console.log("Trying CoinGecko API for trending coins...");
-      const coinGeckoResponse = await fetch('https://api.coingecko.com/api/v3/search/trending', {
+      console.log("Trying CoinGecko simple price endpoint...");
+      const coinGeckoResponse = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=50&page=1&sparkline=false&price_change_percentage=1h,24h', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
+          'Accept': 'application/json'
         }
       });
       
+      console.log(`CoinGecko response status: ${coinGeckoResponse.status}`);
+      
       if (coinGeckoResponse.ok) {
-        const trendingData = await coinGeckoResponse.json();
-        console.log(`CoinGecko returned ${trendingData.coins?.length || 0} trending coins`);
+        const marketsData = await coinGeckoResponse.json();
+        console.log(`CoinGecko returned ${marketsData.length} coins`);
         
-        if (trendingData.coins && Array.isArray(trendingData.coins)) {
-          // Get detailed data for trending coins
-          const coinIds = trendingData.coins.slice(0, 15).map((coin: any) => coin.item.id).join(',');
+        if (Array.isArray(marketsData) && marketsData.length > 0) {
+          // Filter for smaller market cap coins that could be memes
+          const filteredCoins = marketsData.filter((coin: any) => {
+            return coin.market_cap && 
+                   coin.market_cap < 100000000 && // Under $100M market cap
+                   coin.market_cap > 50000 && // Over $50k market cap
+                   coin.current_price && 
+                   coin.current_price < 10; // Under $10 price
+          }).slice(0, 20);
           
-          const detailsResponse = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_rank&per_page=15&page=1&sparkline=false&price_change_percentage=1h,24h`);
+          console.log(`Filtered to ${filteredCoins.length} potential coins from CoinGecko`);
           
-          if (detailsResponse.ok) {
-            const marketsData = await detailsResponse.json();
-            console.log(`CoinGecko markets returned ${marketsData.length} coins`);
-            
-            // Convert to our format
-            allPairs = marketsData.filter((coin: any) => {
-              // Filter for smaller market cap coins (potential memes)
-              return coin.market_cap && 
-                     coin.market_cap < 50000000 && // Under $50M market cap
-                     coin.market_cap > 10000 && // Over $10k market cap
-                     coin.current_price && 
-                     coin.current_price < 1; // Under $1 price
-            }).map((coin: any) => ({
-              chainId: 'ethereum', // CoinGecko doesn't specify chain easily
+          if (filteredCoins.length > 0) {
+            allPairs = filteredCoins.map((coin: any) => ({
+              chainId: 'ethereum',
               baseToken: {
                 address: coin.id,
                 symbol: coin.symbol?.toUpperCase(),
@@ -61,15 +60,20 @@ serve(async (req) => {
                 h24: coin.total_volume || 0
               },
               liquidity: {
-                usd: (coin.total_volume || 0) * 0.1 // Estimate liquidity as 10% of volume
+                usd: (coin.total_volume || 0) * 0.1
               },
               fdv: coin.market_cap || 0,
-              pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 7) * 1000 // Random age up to 7 days
+              pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
             }));
             
-            console.log(`Processed ${allPairs.length} coins from CoinGecko`);
+            dataSource = 'coingecko_live';
+            console.log(`Successfully processed ${allPairs.length} live coins from CoinGecko`);
           }
         }
+      } else {
+        console.log(`CoinGecko failed with status: ${coinGeckoResponse.status}`);
+        const errorText = await coinGeckoResponse.text();
+        console.log(`CoinGecko error response: ${errorText.substring(0, 200)}`);
       }
     } catch (error) {
       console.log("CoinGecko API failed:", error.message);
@@ -95,32 +99,37 @@ serve(async (req) => {
                    token.symbol && 
                    token.symbol.length <= 10 &&
                    !['SOL', 'USDC', 'USDT', 'WBTC', 'ETH'].includes(token.symbol);
-          }).slice(0, 20); // Get first 20 potential meme tokens
+          }).slice(0, 20);
           
           console.log(`Filtered to ${jupiterTokens.length} potential meme tokens from Jupiter`);
           
-          // Convert to our format with some price simulation
-          allPairs = jupiterTokens.map((token: any) => ({
-            chainId: 'solana',
-            baseToken: {
-              address: token.address,
-              symbol: token.symbol,
-              name: token.name
-            },
-            priceUsd: (Math.random() * 0.01).toFixed(6), // Simulate price
-            priceChange: {
-              h1: ((Math.random() - 0.5) * 30).toFixed(2),
-              h24: ((Math.random() - 0.5) * 80).toFixed(2)
-            },
-            volume: {
-              h24: Math.floor(Math.random() * 500000) + 10000
-            },
-            liquidity: {
-              usd: Math.floor(Math.random() * 200000) + 5000
-            },
-            fdv: Math.floor(Math.pow(10, 4 + Math.random() * 3)),
-            pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
-          }));
+          if (jupiterTokens.length > 0) {
+            // Convert to our format with simulated market data
+            allPairs = jupiterTokens.map((token: any) => ({
+              chainId: 'solana',
+              baseToken: {
+                address: token.address,
+                symbol: token.symbol,
+                name: token.name
+              },
+              priceUsd: (Math.random() * 0.01).toFixed(6),
+              priceChange: {
+                h1: ((Math.random() - 0.5) * 30).toFixed(2),
+                h24: ((Math.random() - 0.5) * 80).toFixed(2)
+              },
+              volume: {
+                h24: Math.floor(Math.random() * 500000) + 10000
+              },
+              liquidity: {
+                usd: Math.floor(Math.random() * 200000) + 5000
+              },
+              fdv: Math.floor(Math.pow(10, 4 + Math.random() * 3)),
+              pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
+            }));
+            
+            dataSource = 'jupiter_tokens_simulated';
+            console.log(`Successfully processed ${allPairs.length} Jupiter tokens with simulated data`);
+          }
         }
       } catch (error) {
         console.log("Jupiter API failed:", error.message);
@@ -141,6 +150,7 @@ serve(async (req) => {
           const data = await response.json();
           if (data.pairs && Array.isArray(data.pairs)) {
             allPairs = data.pairs.filter((p: any) => p.chainId === 'solana');
+            dataSource = 'dexscreener_live';
             console.log(`DexScreener returned ${allPairs.length} Solana pairs`);
           }
         }
@@ -246,7 +256,7 @@ serve(async (req) => {
         success: true, 
         coins,
         timestamp: new Date().toISOString(),
-        source: 'live_dexscreener'
+        source: dataSource
       }),
       {
         headers: { 
