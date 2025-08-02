@@ -41,7 +41,9 @@ export const useBirdeyePolling = () => {
       );
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error(`Birdeye API error: ${response.status} - ${errorText}`);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
@@ -110,7 +112,7 @@ export const useBirdeyePolling = () => {
     fetchBirdeyeData();
 
     // Set up polling every 10 seconds
-    intervalRef.current = setInterval(fetchBirdeyeData, 10000);
+    intervalRef.current = setInterval(fetchBirdeyeData, 3000); // Test with 3 seconds
 
     return () => {
       if (intervalRef.current) {
