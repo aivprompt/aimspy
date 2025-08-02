@@ -95,50 +95,20 @@ export const useBirdeyePolling = () => {
 
   const loadFallbackData = async () => {
     try {
-      console.log('🔄 FORCE LOADING HELIUS DATA (not fallback)...');
-      const response = await fetch('https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/helius-api');
-      console.log('⚡ HELIUS FALLBACK Response status:', response.status);
+      console.log('🔄 Loading FIXED fallback data...');
+      const response = await fetch('https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/fetch-meme-coins');
       const data = await response.json();
       
-      console.log('🔍 HELIUS FALLBACK data received:', data);
+      console.log('🔍 FIXED fallback data received:', data);
       
-      if (data.tokens && Array.isArray(data.tokens)) {
-        console.log('📊 Original Helius coin data:', data.tokens.map(c => `${c.symbol}: fresh data`));
+      if (data.coins && Array.isArray(data.coins)) {
+        console.log('📊 Original coin ages:', data.coins.map(c => `${c.symbol}: ${c.age}s (${Math.floor(c.age/86400)}d)`));
         
-        // Transform Helius tokens to MemeCoin format
-        const updatedCoins = data.tokens.map(token => {
-          const freshAge = Math.floor(Math.random() * 86400 * 2) + 3600; // 1 hour to 2 days
-          console.log(`🔄 Creating fresh coin: ${token.symbol} with age ${freshAge}s (${Math.floor(freshAge/86400)}d)`);
-          
-          return {
-            address: token.address,
-            symbol: token.symbol,
-            name: token.name,
-            marketCap: token.marketCap || 0,
-            price: token.price || 0,
-            priceChange1h: token.priceChange24h || (Math.random() - 0.5) * 5,
-            priceChange24h: token.priceChange24h || (Math.random() - 0.5) * 15,
-            volume24h: token.volume24h || 0,
-            liquidity: token.liquidity || 0,
-            age: freshAge, // FRESH AGE!
-            holders: {
-              total: Math.floor(Math.random() * 5000) + 500,
-              data: []
-            },
-            legitScore: Math.min(10, Math.max(0, (token.liquidity || 0) / 100000)),
-            riskScore: Math.min(10, Math.max(0, 10 - (token.liquidity || 0) / 100000)),
-            rewardScore: Math.min(10, Math.max(0, Math.abs(token.priceChange24h || 0) / 10)),
-            dexScreenerUrl: `https://dexscreener.com/solana/${token.address}`,
-            lastUpdated: new Date().toISOString(),
-          };
-        });
-        
-        console.log('✅ Final Helius coin ages:', updatedCoins.map(c => `${c.symbol}: ${c.age}s (${Math.floor(c.age/86400)}d)`));
-        
-        setCoins(updatedCoins);
+        // The coins should now have fresh ages from the updated function
+        setCoins(data.coins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`🎉 Loaded ${updatedCoins.length} HELIUS coins with FORCED FRESH ages!`);
+        console.log(`🎉 Loaded ${data.coins.length} coins with UPDATED ages!`);
       }
     } catch (error) {
       console.error('Error loading fallback data:', error);
