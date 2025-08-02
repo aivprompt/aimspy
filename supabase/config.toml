@@ -6,5 +6,5 @@ verify_jwt = false
 [functions.fetch-meme-coins]
 verify_jwt = false
 
-[functions.birdeye-websocket]
+[functions.birdeye-api]
 verify_jwt = false

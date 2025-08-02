@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CoinDetailsPopup } from '@/components/ui/coin-details-popup';
 import { cn } from '@/lib/utils';
-import { useLiveMemeCoinFeed } from '@/hooks/useLiveMemeCoinFeed';
+import { useBirdeyePolling } from '@/hooks/useBirdeyePolling';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -25,7 +25,7 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
   const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   
-  const { coins, isConnected, connectionStatus } = useLiveMemeCoinFeed();
+  const { coins, isLoading, lastUpdate, isLive } = useBirdeyePolling();
 
   const formatMoney = (amount: number): string => {
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
@@ -54,7 +54,7 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
     <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          {isConnected ? (
+          {isLive ? (
             <Wifi className="h-4 w-4 text-green-500" />
           ) : (
             <WifiOff className="h-4 w-4 text-red-500" />
@@ -63,13 +63,12 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
           <Badge 
             variant="outline" 
             className={cn("ml-auto", {
-              "text-green-500 border-green-500": connectionStatus === 'live',
-              "text-yellow-500 border-yellow-500": connectionStatus === 'connected',
-              "text-red-500 border-red-500": connectionStatus === 'error',
-              "text-gray-500 border-gray-500": connectionStatus === 'disconnected'
+              "text-green-500 border-green-500": isLive,
+              "text-yellow-500 border-yellow-500": isLoading,
+              "text-red-500 border-red-500": !isLive && !isLoading
             })}
           >
-            {connectionStatus.toUpperCase()}
+            {isLive ? 'LIVE' : isLoading ? 'LOADING' : 'OFFLINE'}
           </Badge>
         </CardTitle>
       </CardHeader>
