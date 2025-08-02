@@ -28,59 +28,51 @@ serve(async (req) => {
       console.log("Basic fetch test failed:", error.message);
     }
     
-    // Try DexScreener with multiple approaches
+    // Try DexScreener with working endpoints
     try {
-      console.log("=== TRYING DEXSCREENER TOKENS BY CHAIN ===");
+      console.log("=== TRYING DEXSCREENER SEARCH ===");
       
-      // Try getting tokens by chain first - this is more reliable
-      const tokensResponse = await fetch('https://api.dexscreener.com/latest/dex/tokens/solana', {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
-        }
-      });
+      // Use the search endpoint with popular meme coin terms
+      const searchTerms = ['bonk', 'pepe', 'doge', 'shib', 'meme'];
       
-      console.log(`DexScreener tokens response status: ${tokensResponse.status}`);
-      
-      if (tokensResponse.ok) {
-        const tokensData = await tokensResponse.json();
-        console.log(`DexScreener tokens returned ${tokensData.pairs?.length || 0} pairs`);
-        
-        if (tokensData.pairs && tokensData.pairs.length > 0) {
-          // Filter for good meme coins
-          const goodPairs = tokensData.pairs.filter((pair: any) => {
-            const vol24h = pair.volume?.h24 || 0;
-            const liquidity = pair.liquidity?.usd || 0;
-            const mcap = pair.fdv || 0;
-            
-            return (
-              pair.baseToken && 
-              pair.baseToken.symbol &&
-              pair.baseToken.symbol.length >= 3 && // At least 3 characters
-              pair.baseToken.symbol.length <= 10 && // Not too long
-              !['SOL', 'USDC', 'USDT', 'BTC', 'ETH', 'WETH', 'WSOL'].includes(pair.baseToken.symbol) &&
-              vol24h > 10000 && // At least $10k volume
-              liquidity > 5000 && // At least $5k liquidity
-              mcap > 10000 && // At least $10k market cap
-              mcap < 100000000 // Less than $100M market cap
-            );
+      for (const term of searchTerms) {
+        try {
+          const searchResponse = await fetch(`https://api.dexscreener.com/latest/dex/search/?q=${term}`, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
+              'Accept': 'application/json'
+            }
           });
           
-          console.log(`Found ${goodPairs.length} good pairs after filtering`);
+          console.log(`DexScreener search (${term}) response status: ${searchResponse.status}`);
           
-          if (goodPairs.length > 0) {
-            // Sort by volume
-            goodPairs.sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0));
-            allPairs = goodPairs.slice(0, 20);
-            dataSource = 'dexscreener_solana_tokens';
-            console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener Solana tokens ===`);
+          if (searchResponse.ok) {
+            const searchData = await searchResponse.json();
+            if (searchData?.pairs && Array.isArray(searchData.pairs)) {
+              // Filter for Solana pairs with good metrics
+              const solanaPairs = searchData.pairs.filter((pair: any) => 
+                pair.chainId === 'solana' && 
+                pair.volume?.h24 > 5000 &&
+                pair.liquidity?.usd > 1000 &&
+                pair.baseToken?.symbol &&
+                !['SOL', 'USDC', 'USDT', 'WETH'].includes(pair.baseToken.symbol)
+              );
+              
+              allPairs.push(...solanaPairs);
+              console.log(`Search term '${term}' added ${solanaPairs.length} Solana pairs`);
+            }
           }
+        } catch (error) {
+          console.log(`Search term '${term}' failed:`, error.message);
         }
-      } else {
-        const errorText = await tokensResponse.text();
-        console.log(`DexScreener tokens error: ${tokensResponse.status} - ${errorText.substring(0, 200)}`);
+      }
+      
+      if (allPairs.length > 0) {
+        dataSource = 'dexscreener_search';
+        console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener search ===`);
       }
     } catch (error) {
-      console.log("DexScreener tokens API failed:", error.message);
+      console.log("DexScreener search API failed:", error.message);
     }
     
     // If that failed, try the pairs endpoint
@@ -350,33 +342,44 @@ function calculateRewardScore(coin: any): number {
 
 function generateRealisticDemoData() {
   const realisticTokens = [
-    { symbol: 'BONK', name: 'Bonk', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
-    { symbol: 'WIF', name: 'dogwifhat', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
-    { symbol: 'POPCAT', name: 'Popcat', address: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },
-    { symbol: 'MEW', name: 'cat in a dogs world', address: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5' },
-    { symbol: 'FWOG', name: 'FWOG', address: 'A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump' },
-    { symbol: 'PONKE', name: 'Ponke', address: '5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC' },
-    { symbol: 'PNUT', name: 'Peanut the Squirrel', address: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump' },
-    { symbol: 'GOAT', name: 'Goatseus Maximus', address: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump' },
-    { symbol: 'CHILLGUY', name: 'Just a chill guy', address: 'Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump' },
-    { symbol: 'SLERF', name: 'Slerf', address: '7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3' }
+    { symbol: 'BONK', name: 'Bonk', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263', basePrice: 0.000035 },
+    { symbol: 'WIF', name: 'dogwifhat', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm', basePrice: 1.85 },
+    { symbol: 'POPCAT', name: 'Popcat', address: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr', basePrice: 0.45 },
+    { symbol: 'MEW', name: 'cat in a dogs world', address: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5', basePrice: 0.0085 },
+    { symbol: 'FWOG', name: 'FWOG', address: 'A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump', basePrice: 0.25 },
+    { symbol: 'PONKE', name: 'Ponke', address: '5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC', basePrice: 0.34 },
+    { symbol: 'PNUT', name: 'Peanut the Squirrel', address: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump', basePrice: 0.65 },
+    { symbol: 'GOAT', name: 'Goatseus Maximus', address: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump', basePrice: 0.55 },
+    { symbol: 'CHILLGUY', name: 'Just a chill guy', address: 'Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump', basePrice: 0.15 },
+    { symbol: 'SLERF', name: 'Slerf', address: '7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3', basePrice: 0.28 }
   ];
 
   return realisticTokens.map((token, index) => {
     const now = Date.now();
     const ageInSeconds = Math.floor(Math.random() * 86400 * 30) + 3600; // 1 hour to 30 days old
-    const marketCapBase = Math.pow(10, 4 + Math.random() * 3); // $10k to $1M range
+    const marketCapVariation = 0.8 + (Math.random() * 0.4); // 80% to 120% of base
+    
+    // Create realistic price with small variations from base price
+    const priceVariation = 0.85 + (Math.random() * 0.3); // 85% to 115% of base price
+    const currentPrice = token.basePrice * priceVariation;
+    
+    // Calculate realistic market cap based on price
+    const estimatedSupply = token.symbol === 'BONK' ? 90000000000000 : // 90T for BONK
+                           token.symbol === 'WIF' ? 998900000000 : // ~999B for WIF
+                           Math.floor(Math.random() * 10000000000) + 1000000000; // 1B to 10B for others
+    
+    const marketCap = currentPrice * estimatedSupply * marketCapVariation;
     
     const coin = {
       address: token.address,
       symbol: token.symbol,
       name: token.name,
-      marketCap: Math.floor(marketCapBase),
-      price: Math.random() * 0.01 + 0.00001, // $0.00001 to $0.01001
-      priceChange1h: (Math.random() - 0.5) * 30, // -15% to +15%
-      priceChange24h: (Math.random() - 0.5) * 80, // -40% to +40%
-      volume24h: Math.floor(Math.random() * 500000) + 10000, // $10k to $510k
-      liquidity: Math.floor(Math.random() * 200000) + 5000, // $5k to $205k
+      marketCap: Math.floor(marketCap),
+      price: currentPrice,
+      priceChange1h: (Math.random() - 0.5) * 10, // -5% to +5%
+      priceChange24h: (Math.random() - 0.5) * 30, // -15% to +15%
+      volume24h: Math.floor(Math.random() * 15000000) + 500000, // $500k to $15.5M
+      liquidity: Math.floor(Math.random() * 2000000) + 100000, // $100k to $2.1M
       age: ageInSeconds,
       holders: generateMockHolderData(),
       legitScore: 0,
