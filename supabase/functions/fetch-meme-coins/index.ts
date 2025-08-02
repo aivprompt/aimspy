@@ -28,124 +28,96 @@ serve(async (req) => {
       console.log("Basic fetch test failed:", error.message);
     }
     
-    // Try CoinGecko trending coins first
+    // Try DexScreener - free API, no key required
     try {
-      console.log("=== TRYING COINGECKO TRENDING ===");
-      console.log("Making request to trending endpoint...");
-      const trendingResponse = await fetch('https://api.coingecko.com/api/v3/search/trending', {
+      console.log("=== TRYING DEXSCREENER LATEST ===");
+      console.log("Making request to DexScreener latest endpoint...");
+      
+      const dexResponse = await fetch('https://api.dexscreener.com/latest/dex/tokens/trending', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
         }
       });
       
-      console.log(`CoinGecko trending response status: ${trendingResponse.status}`);
+      console.log(`DexScreener response status: ${dexResponse.status}`);
       
-      if (trendingResponse.ok) {
-        const trendingData = await trendingResponse.json();
-        console.log(`CoinGecko trending returned ${trendingData.coins?.length || 0} trending coins`);
+      if (dexResponse.ok) {
+        const dexData = await dexResponse.json();
+        console.log(`DexScreener returned ${dexData.pairs?.length || 0} trending pairs`);
         
-        if (trendingData.coins && trendingData.coins.length > 0) {
-          // Get detailed data for trending coins
-          const coinIds = trendingData.coins.slice(0, 10).map((coin: any) => coin.item.id).join(',');
+        if (dexData.pairs && dexData.pairs.length > 0) {
+          // Filter for Solana pairs only
+          const solanaPairs = dexData.pairs.filter((pair: any) => 
+            pair.chainId === 'solana' && 
+            pair.baseToken && 
+            pair.baseToken.symbol &&
+            pair.baseToken.symbol !== 'SOL' &&
+            pair.baseToken.symbol !== 'USDC' &&
+            pair.baseToken.symbol !== 'USDT'
+          );
           
-          const marketsResponse = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=1h%2C24h`, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
-            }
-          });
+          console.log(`Found ${solanaPairs.length} Solana pairs after filtering`);
           
-          if (marketsResponse.ok) {
-            const marketsData = await marketsResponse.json();
-            console.log(`CoinGecko markets returned ${marketsData.length} coins with detailed data`);
-            
-            // Convert to our format
-            const trendingCoins = marketsData.map((coin: any) => ({
-              chainId: 'solana', // Assume Solana for meme coins
-              baseToken: {
-                address: coin.id,
-                symbol: coin.symbol?.toUpperCase() || 'UNKNOWN',
-                name: coin.name || 'Unknown Token'
-              },
-              priceUsd: coin.current_price?.toString() || '0',
-              priceChange: {
-                h1: coin.price_change_percentage_1h_in_currency?.toString() || '0',
-                h24: coin.price_change_percentage_24h?.toString() || '0'
-              },
-              volume: {
-                h24: coin.total_volume || 0
-              },
-              liquidity: {
-                usd: (coin.total_volume || 0) * 0.1 // Estimate liquidity as 10% of volume
-              },
-              fdv: coin.market_cap || 0,
-              pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000 // Random age within 30 days
-            }));
-            
-            if (trendingCoins.length > 0) {
-              allPairs = trendingCoins;
-              dataSource = 'coingecko_trending';
-              console.log(`=== SUCCESS: Got ${allPairs.length} trending coins from CoinGecko ===`);
-            }
+          if (solanaPairs.length > 0) {
+            allPairs = solanaPairs.slice(0, 20); // Take top 20
+            dataSource = 'dexscreener_trending';
+            console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener ===`);
           }
         }
       } else {
-        const errorText = await trendingResponse.text();
-        console.log(`CoinGecko trending error: ${trendingResponse.status} - ${errorText.substring(0, 100)}`);
+        const errorText = await dexResponse.text();
+        console.log(`DexScreener error: ${dexResponse.status} - ${errorText.substring(0, 100)}`);
       }
     } catch (error) {
-      console.log("CoinGecko trending API failed:", error.message);
+      console.log("DexScreener API failed:", error.message);
     }
     
-    // If trending failed, try CoinGecko markets with meme coin category
+    // If DexScreener trending failed, try DexScreener search for meme coins
     if (allPairs.length === 0) {
       try {
-        console.log("=== TRYING COINGECKO MARKETS FOR MEME COINS ===");
-        const marketsResponse = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&category=meme-token&order=volume_desc&per_page=20&page=1&sparkline=false&price_change_percentage=1h%2C24h', {
+        console.log("=== TRYING DEXSCREENER SEARCH ===");
+        
+        const searchResponse = await fetch('https://api.dexscreener.com/latest/dex/search/?q=meme', {
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
           }
         });
         
-        console.log(`CoinGecko meme markets response status: ${marketsResponse.status}`);
+        console.log(`DexScreener search response status: ${searchResponse.status}`);
         
-        if (marketsResponse.ok) {
-          const marketsData = await marketsResponse.json();
-          console.log(`CoinGecko meme markets returned ${marketsData.length} meme coins`);
+        if (searchResponse.ok) {
+          const searchData = await searchResponse.json();
+          console.log(`DexScreener search returned ${searchData.pairs?.length || 0} pairs`);
           
-          // Convert to our format
-          const memeCoins = marketsData.map((coin: any) => ({
-            chainId: 'solana',
-            baseToken: {
-              address: coin.id,
-              symbol: coin.symbol?.toUpperCase() || 'UNKNOWN',
-              name: coin.name || 'Unknown Token'
-            },
-            priceUsd: coin.current_price?.toString() || '0',
-            priceChange: {
-              h1: coin.price_change_percentage_1h_in_currency?.toString() || '0',
-              h24: coin.price_change_percentage_24h?.toString() || '0'
-            },
-            volume: {
-              h24: coin.total_volume || 0
-            },
-            liquidity: {
-              usd: (coin.total_volume || 0) * 0.1
-            },
-            fdv: coin.market_cap || 0,
-            pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
-          }));
-          
-          if (memeCoins.length > 0) {
-            allPairs = memeCoins;
-            dataSource = 'coingecko_meme_category';
-            console.log(`=== SUCCESS: Got ${allPairs.length} meme coins from CoinGecko markets ===`);
+          if (searchData.pairs && searchData.pairs.length > 0) {
+            // Filter for Solana pairs with good volume
+            const goodPairs = searchData.pairs.filter((pair: any) => 
+              pair.chainId === 'solana' && 
+              pair.baseToken && 
+              pair.baseToken.symbol &&
+              pair.baseToken.symbol !== 'SOL' &&
+              pair.baseToken.symbol !== 'USDC' &&
+              pair.baseToken.symbol !== 'USDT' &&
+              pair.volume?.h24 > 1000 && // At least $1k volume
+              pair.liquidity?.usd > 1000 // At least $1k liquidity
+            );
+            
+            console.log(`Found ${goodPairs.length} good Solana pairs`);
+            
+            if (goodPairs.length > 0) {
+              // Sort by volume
+              goodPairs.sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0));
+              allPairs = goodPairs.slice(0, 15);
+              dataSource = 'dexscreener_search';
+              console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener search ===`);
+            }
           }
         } else {
-          const errorText = await marketsResponse.text();
-          console.log(`CoinGecko meme markets error: ${marketsResponse.status} - ${errorText.substring(0, 100)}`);
+          const errorText = await searchResponse.text();
+          console.log(`DexScreener search error: ${searchResponse.status} - ${errorText.substring(0, 100)}`);
         }
       } catch (error) {
-        console.log("CoinGecko meme markets API failed:", error.message);
+        console.log("DexScreener search API failed:", error.message);
       }
     }
     
