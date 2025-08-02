@@ -106,13 +106,18 @@ export const useBirdeyePolling = () => {
 
   // Start polling
   useEffect(() => {
-    console.log('Starting Birdeye polling...');
+    console.log('🚀 Starting Birdeye polling hook...');
     
     // Initial fetch
+    console.log('🔄 Triggering initial fetch...');
     fetchBirdeyeData();
 
-    // Set up polling every 10 seconds
-    intervalRef.current = setInterval(fetchBirdeyeData, 3000); // Test with 3 seconds
+    // Set up polling every 3 seconds for testing
+    console.log('⏱️ Setting up 3-second polling interval...');
+    intervalRef.current = setInterval(() => {
+      console.log('🔄 Interval triggered - fetching data...');
+      fetchBirdeyeData();
+    }, 3000);
 
     return () => {
       if (intervalRef.current) {
