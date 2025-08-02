@@ -32,24 +32,27 @@ export const useBirdeyePolling = () => {
 
   const fetchBirdeyeData = async () => {
     try {
-      console.log('Fetching Birdeye data with updated API key...');
+      console.log('🚀 Fetching Birdeye data with updated API key...');
       
       // Create batch request for multiple tokens
       const tokenParams = memeTokenAddresses.join(',');
-      const response = await fetch(
-        `https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/birdeye-api?tokens=${tokenParams}`
-      );
+      const apiUrl = `https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/birdeye-api?tokens=${tokenParams}`;
+      console.log('📡 Calling API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      console.log('📊 API Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`Birdeye API error: ${response.status} - ${errorText}`);
+        console.error(`❌ Birdeye API error: ${response.status} - ${errorText}`);
         throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('Birdeye API response:', data);
+      console.log('📈 Birdeye API response:', data);
 
       if (data.success && data.tokens) {
+        console.log(`✅ Processing ${data.tokens.length} tokens from Birdeye`);
         const transformedCoins: MemeCoin[] = data.tokens.map((token: BirdeyeTokenData, index: number) => ({
           address: token.address,
           symbol: token.symbol || `TOKEN${index}`,
@@ -75,13 +78,14 @@ export const useBirdeyePolling = () => {
         setCoins(transformedCoins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`Updated ${transformedCoins.length} coins from Birdeye`);
+        console.log(`🎉 Updated ${transformedCoins.length} coins from Birdeye LIVE DATA!`);
       } else {
-        console.warn('Birdeye API returned no tokens, using fallback data');
-        await loadFallbackData();
+        console.warn('⚠️ Birdeye API returned no tokens, using fallback data');
+        throw new Error('No valid token data from Birdeye');
       }
     } catch (error) {
-      console.error('Error fetching Birdeye data:', error);
+      console.error('💥 Error fetching Birdeye data:', error);
+      console.log('🔄 Loading fallback data instead...');
       await loadFallbackData();
     }
   };
