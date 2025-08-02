@@ -31,6 +31,7 @@ serve(async (req) => {
     // Try CoinGecko trending coins first
     try {
       console.log("=== TRYING COINGECKO TRENDING ===");
+      console.log("Making request to trending endpoint...");
       const trendingResponse = await fetch('https://api.coingecko.com/api/v3/search/trending', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
@@ -169,17 +170,23 @@ serve(async (req) => {
       const volume = pair.volume?.h24 || 0;
       const liquidity = pair.liquidity?.usd || 0;
       
-      return (
+      console.log(`Checking coin ${pair.baseToken?.symbol}: MC=${marketCap}, Vol=${volume}, Liq=${liquidity}`);
+      
+      const isValid = (
         pair.baseToken && 
         pair.baseToken.symbol &&
         pair.baseToken.symbol !== 'SOL' &&
         pair.baseToken.symbol !== 'USDC' &&
         pair.baseToken.symbol !== 'USDT' &&
+        pair.baseToken.symbol !== 'BTC' &&
+        pair.baseToken.symbol !== 'ETH' &&
         marketCap > 1000 && // Min $1k market cap
-        marketCap < 50000000 && // Max $50M market cap
-        liquidity > 500 && // Min $500 liquidity
+        marketCap < 500000000 && // Increased max to $500M market cap to include more coins
         volume > 100 // Min $100 24h volume
       );
+      
+      console.log(`Coin ${pair.baseToken?.symbol} ${isValid ? 'PASSED' : 'FILTERED OUT'} filter`);
+      return isValid;
     });
 
     console.log(`Filtered pairs: ${filteredPairs.length}`);
@@ -364,14 +371,16 @@ function calculateRewardScore(coin: any): number {
 
 function generateRealisticDemoData() {
   const realisticTokens = [
-    { symbol: 'BONK', name: 'Bonk', address: '3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q7bA1BxY4cF9sT' },
-    { symbol: 'WIF', name: 'dogwifhat', address: '8K3mRzL5pQ2aDfE6z2Q7bA1BxY4cF9sT3P8gKYEKJ7ZP' },
-    { symbol: 'POPCAT', name: 'Popcat', address: 'Z7bA1BxY4cF9sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q' },
-    { symbol: 'MEW', name: 'cat in a dogs world', address: 'F9sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q7bA1BxY4c' },
-    { symbol: 'FWOG', name: 'FWOG', address: 'Y4cF9sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q7bA1Bx' },
-    { symbol: 'PONKE', name: 'Ponke', address: 'Q7bA1BxY4cF9sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2' },
-    { symbol: 'PNUT', name: 'Peanut the Squirrel', address: 'sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q7bA1BxY4cF9' },
-    { symbol: 'GOAT', name: 'Goatseus Maximus', address: 'A1BxY4cF9sT3P8gKYEKJ7ZPK8Ckc9cDJc5aDfE6z2Q7b' },
+    { symbol: 'BONK', name: 'Bonk', address: 'DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263' },
+    { symbol: 'WIF', name: 'dogwifhat', address: 'EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm' },
+    { symbol: 'POPCAT', name: 'Popcat', address: '7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr' },
+    { symbol: 'MEW', name: 'cat in a dogs world', address: 'MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5' },
+    { symbol: 'FWOG', name: 'FWOG', address: 'A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump' },
+    { symbol: 'PONKE', name: 'Ponke', address: '5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC' },
+    { symbol: 'PNUT', name: 'Peanut the Squirrel', address: '2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump' },
+    { symbol: 'GOAT', name: 'Goatseus Maximus', address: 'CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump' },
+    { symbol: 'CHILLGUY', name: 'Just a chill guy', address: 'Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump' },
+    { symbol: 'SLERF', name: 'Slerf', address: '7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3' }
   ];
 
   return realisticTokens.map((token, index) => {
