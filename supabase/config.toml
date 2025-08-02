@@ -2,3 +2,6 @@ project_id = "qkappowfrpsrvmxrndrx"
 
 [functions.create-checkout]
 verify_jwt = false
+
+[functions.fetch-meme-coins]
+verify_jwt = false

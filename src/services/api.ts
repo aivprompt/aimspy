@@ -1,4 +1,5 @@
 import { MemeCoin } from '../types/meme-coin';
+import { supabase } from '@/integrations/supabase/client';
 
 // Rate limiting to avoid being blocked
 class RateLimiter {
@@ -28,6 +29,35 @@ export class MemeSpyAPI {
   }
 
   async fetchNewMemeCoins(): Promise<MemeCoin[]> {
+    try {
+      console.log('Fetching live meme coins via edge function...');
+      
+      // Use our Supabase edge function to fetch live data
+      const { data, error } = await supabase.functions.invoke('fetch-meme-coins');
+      
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
+
+      if (data && data.success && data.coins && data.coins.length > 0) {
+        console.log(`Received ${data.coins.length} live coins from edge function`);
+        return data.coins;
+      }
+
+      console.log('No live data available, falling back to mock data');
+      return this.generateMockCoins();
+      
+    } catch (error) {
+      console.error('Error fetching meme coins via edge function:', error);
+      console.log('Falling back to direct API calls...');
+      
+      // Fallback to direct API calls if edge function fails
+      return this.fetchViaDirectAPI();
+    }
+  }
+
+  private async fetchViaDirectAPI(): Promise<MemeCoin[]> {
     await rateLimiter.throttle();
     
     try {
@@ -58,11 +88,13 @@ export class MemeSpyAPI {
       
       console.log(`Total pairs collected: ${allPairs.length}`);
       
-      // Filter for reasonable tokens (remove age restriction for now)
+      // Filter for reasonable tokens with less strict criteria
       const filteredPairs = allPairs.filter((pair: any) => {
         const marketCap = pair.fdv || 0;
+        const volume = pair.volume?.h24 || 0;
         return pair.chainId === 'solana' && 
-               marketCap > 100 && marketCap < 100000000 && // $100 to $100M
+               marketCap > 1000 && marketCap < 50000000 && // $1k to $50M
+               volume > 100 && // Min $100 volume
                pair.baseToken && 
                pair.baseToken.symbol &&
                pair.baseToken.symbol !== 'SOL'; // Exclude SOL itself
@@ -70,30 +102,30 @@ export class MemeSpyAPI {
       
       console.log(`Filtered pairs: ${filteredPairs.length}`);
       
-      // Sort by newest first (if we have creation time)
+      // Sort by volume for quality
       filteredPairs.sort((a: any, b: any) => {
-        const aTime = a.pairCreatedAt || 0;
-        const bTime = b.pairCreatedAt || 0;
-        return bTime - aTime; // Newest first
+        const aVol = a.volume?.h24 || 0;
+        const bVol = b.volume?.h24 || 0;
+        return bVol - aVol;
       });
 
       const coins: MemeCoin[] = [];
       
-      for (const pair of filteredPairs.slice(0, 25)) {
+      for (const pair of filteredPairs.slice(0, 20)) {
         const coin = await this.processCoinData(pair);
         if (coin) coins.push(coin);
       }
       
       // If still no coins, generate some mock data for demo
       if (coins.length === 0) {
-        console.log('No real coins found, generating demo data...');
+        console.log('No real coins found via direct API, generating demo data...');
         return this.generateMockCoins();
       }
       
       console.log(`Final processed coins: ${coins.length}`);
       return coins;
     } catch (error) {
-      console.error('Error fetching meme coins:', error);
+      console.error('Error fetching meme coins via direct API:', error);
       // Fallback to mock data
       return this.generateMockCoins();
     }
