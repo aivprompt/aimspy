@@ -28,96 +28,103 @@ serve(async (req) => {
       console.log("Basic fetch test failed:", error.message);
     }
     
-    // Try DexScreener - free API, no key required
+    // Try DexScreener with multiple approaches
     try {
-      console.log("=== TRYING DEXSCREENER LATEST ===");
-      console.log("Making request to DexScreener latest endpoint...");
+      console.log("=== TRYING DEXSCREENER TOKENS BY CHAIN ===");
       
-      const dexResponse = await fetch('https://api.dexscreener.com/latest/dex/tokens/trending', {
+      // Try getting tokens by chain first - this is more reliable
+      const tokensResponse = await fetch('https://api.dexscreener.com/latest/dex/tokens/solana', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
         }
       });
       
-      console.log(`DexScreener response status: ${dexResponse.status}`);
+      console.log(`DexScreener tokens response status: ${tokensResponse.status}`);
       
-      if (dexResponse.ok) {
-        const dexData = await dexResponse.json();
-        console.log(`DexScreener returned ${dexData.pairs?.length || 0} trending pairs`);
+      if (tokensResponse.ok) {
+        const tokensData = await tokensResponse.json();
+        console.log(`DexScreener tokens returned ${tokensData.pairs?.length || 0} pairs`);
         
-        if (dexData.pairs && dexData.pairs.length > 0) {
-          // Filter for Solana pairs only
-          const solanaPairs = dexData.pairs.filter((pair: any) => 
-            pair.chainId === 'solana' && 
-            pair.baseToken && 
-            pair.baseToken.symbol &&
-            pair.baseToken.symbol !== 'SOL' &&
-            pair.baseToken.symbol !== 'USDC' &&
-            pair.baseToken.symbol !== 'USDT'
-          );
+        if (tokensData.pairs && tokensData.pairs.length > 0) {
+          // Filter for good meme coins
+          const goodPairs = tokensData.pairs.filter((pair: any) => {
+            const vol24h = pair.volume?.h24 || 0;
+            const liquidity = pair.liquidity?.usd || 0;
+            const mcap = pair.fdv || 0;
+            
+            return (
+              pair.baseToken && 
+              pair.baseToken.symbol &&
+              pair.baseToken.symbol.length >= 3 && // At least 3 characters
+              pair.baseToken.symbol.length <= 10 && // Not too long
+              !['SOL', 'USDC', 'USDT', 'BTC', 'ETH', 'WETH', 'WSOL'].includes(pair.baseToken.symbol) &&
+              vol24h > 10000 && // At least $10k volume
+              liquidity > 5000 && // At least $5k liquidity
+              mcap > 10000 && // At least $10k market cap
+              mcap < 100000000 // Less than $100M market cap
+            );
+          });
           
-          console.log(`Found ${solanaPairs.length} Solana pairs after filtering`);
+          console.log(`Found ${goodPairs.length} good pairs after filtering`);
           
-          if (solanaPairs.length > 0) {
-            allPairs = solanaPairs.slice(0, 20); // Take top 20
-            dataSource = 'dexscreener_trending';
-            console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener ===`);
+          if (goodPairs.length > 0) {
+            // Sort by volume
+            goodPairs.sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0));
+            allPairs = goodPairs.slice(0, 20);
+            dataSource = 'dexscreener_solana_tokens';
+            console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener Solana tokens ===`);
           }
         }
       } else {
-        const errorText = await dexResponse.text();
-        console.log(`DexScreener error: ${dexResponse.status} - ${errorText.substring(0, 100)}`);
+        const errorText = await tokensResponse.text();
+        console.log(`DexScreener tokens error: ${tokensResponse.status} - ${errorText.substring(0, 200)}`);
       }
     } catch (error) {
-      console.log("DexScreener API failed:", error.message);
+      console.log("DexScreener tokens API failed:", error.message);
     }
     
-    // If DexScreener trending failed, try DexScreener search for meme coins
+    // If that failed, try the pairs endpoint
     if (allPairs.length === 0) {
       try {
-        console.log("=== TRYING DEXSCREENER SEARCH ===");
+        console.log("=== TRYING DEXSCREENER PAIRS ===");
         
-        const searchResponse = await fetch('https://api.dexscreener.com/latest/dex/search/?q=meme', {
+        const pairsResponse = await fetch('https://api.dexscreener.com/latest/dex/pairs/solana', {
           headers: {
             'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
           }
         });
         
-        console.log(`DexScreener search response status: ${searchResponse.status}`);
+        console.log(`DexScreener pairs response status: ${pairsResponse.status}`);
         
-        if (searchResponse.ok) {
-          const searchData = await searchResponse.json();
-          console.log(`DexScreener search returned ${searchData.pairs?.length || 0} pairs`);
+        if (pairsResponse.ok) {
+          const pairsData = await pairsResponse.json();
+          console.log(`DexScreener pairs returned ${pairsData.pairs?.length || 0} pairs`);
           
-          if (searchData.pairs && searchData.pairs.length > 0) {
-            // Filter for Solana pairs with good volume
-            const goodPairs = searchData.pairs.filter((pair: any) => 
-              pair.chainId === 'solana' && 
-              pair.baseToken && 
-              pair.baseToken.symbol &&
-              pair.baseToken.symbol !== 'SOL' &&
-              pair.baseToken.symbol !== 'USDC' &&
-              pair.baseToken.symbol !== 'USDT' &&
-              pair.volume?.h24 > 1000 && // At least $1k volume
-              pair.liquidity?.usd > 1000 // At least $1k liquidity
-            );
+          if (pairsData.pairs && pairsData.pairs.length > 0) {
+            // Take the most active pairs
+            const activePairs = pairsData.pairs
+              .filter((pair: any) => 
+                pair.baseToken && 
+                pair.volume?.h24 > 5000 &&
+                !['SOL', 'USDC', 'USDT'].includes(pair.baseToken.symbol)
+              )
+              .sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
+              .slice(0, 15);
             
-            console.log(`Found ${goodPairs.length} good Solana pairs`);
+            console.log(`Found ${activePairs.length} active pairs`);
             
-            if (goodPairs.length > 0) {
-              // Sort by volume
-              goodPairs.sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0));
-              allPairs = goodPairs.slice(0, 15);
-              dataSource = 'dexscreener_search';
-              console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener search ===`);
+            if (activePairs.length > 0) {
+              allPairs = activePairs;
+              dataSource = 'dexscreener_solana_pairs';
+              console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener Solana pairs ===`);
             }
           }
         } else {
-          const errorText = await searchResponse.text();
-          console.log(`DexScreener search error: ${searchResponse.status} - ${errorText.substring(0, 100)}`);
+          const errorText = await pairsResponse.text();
+          console.log(`DexScreener pairs error: ${pairsResponse.status} - ${errorText.substring(0, 200)}`);
         }
       } catch (error) {
-        console.log("DexScreener search API failed:", error.message);
+        console.log("DexScreener pairs API failed:", error.message);
       }
     }
     
