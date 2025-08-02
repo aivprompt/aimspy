@@ -14,57 +14,120 @@ serve(async (req) => {
     
     let allPairs: any[] = [];
     
-    // Try Jupiter aggregator API for Solana tokens first (more reliable)
+    // Try CoinGecko API first (most reliable for live data)
     try {
-      console.log("Trying Jupiter API for Solana tokens...");
-      const jupiterResponse = await fetch('https://quote-api.jup.ag/v6/tokens', {
+      console.log("Trying CoinGecko API for trending coins...");
+      const coinGeckoResponse = await fetch('https://api.coingecko.com/api/v3/search/trending', {
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
         }
       });
       
-      if (jupiterResponse.ok) {
-        const tokensData = await jupiterResponse.json();
-        console.log(`Jupiter returned ${Object.keys(tokensData).length} tokens`);
+      if (coinGeckoResponse.ok) {
+        const trendingData = await coinGeckoResponse.json();
+        console.log(`CoinGecko returned ${trendingData.coins?.length || 0} trending coins`);
         
-        // Convert Jupiter token format and filter for meme-like tokens
-        const jupiterTokens = Object.values(tokensData).filter((token: any) => {
-          return token.name && 
-                 token.symbol && 
-                 token.symbol.length <= 10 &&
-                 !['SOL', 'USDC', 'USDT', 'WBTC', 'ETH'].includes(token.symbol);
-        }).slice(0, 50); // Get first 50 potential meme tokens
-        
-        console.log(`Filtered to ${jupiterTokens.length} potential meme tokens from Jupiter`);
-        
-        // Convert to our format with some price simulation
-        allPairs = jupiterTokens.map((token: any) => ({
-          chainId: 'solana',
-          baseToken: {
-            address: token.address,
-            symbol: token.symbol,
-            name: token.name
-          },
-          priceUsd: (Math.random() * 0.01).toFixed(6), // Simulate price
-          priceChange: {
-            h1: ((Math.random() - 0.5) * 30).toFixed(2),
-            h24: ((Math.random() - 0.5) * 80).toFixed(2)
-          },
-          volume: {
-            h24: Math.floor(Math.random() * 500000) + 10000
-          },
-          liquidity: {
-            usd: Math.floor(Math.random() * 200000) + 5000
-          },
-          fdv: Math.floor(Math.pow(10, 4 + Math.random() * 3)),
-          pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
-        }));
+        if (trendingData.coins && Array.isArray(trendingData.coins)) {
+          // Get detailed data for trending coins
+          const coinIds = trendingData.coins.slice(0, 15).map((coin: any) => coin.item.id).join(',');
+          
+          const detailsResponse = await fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_rank&per_page=15&page=1&sparkline=false&price_change_percentage=1h,24h`);
+          
+          if (detailsResponse.ok) {
+            const marketsData = await detailsResponse.json();
+            console.log(`CoinGecko markets returned ${marketsData.length} coins`);
+            
+            // Convert to our format
+            allPairs = marketsData.filter((coin: any) => {
+              // Filter for smaller market cap coins (potential memes)
+              return coin.market_cap && 
+                     coin.market_cap < 50000000 && // Under $50M market cap
+                     coin.market_cap > 10000 && // Over $10k market cap
+                     coin.current_price && 
+                     coin.current_price < 1; // Under $1 price
+            }).map((coin: any) => ({
+              chainId: 'ethereum', // CoinGecko doesn't specify chain easily
+              baseToken: {
+                address: coin.id,
+                symbol: coin.symbol?.toUpperCase(),
+                name: coin.name
+              },
+              priceUsd: coin.current_price?.toString(),
+              priceChange: {
+                h1: coin.price_change_percentage_1h_in_currency?.toString() || '0',
+                h24: coin.price_change_percentage_24h?.toString() || '0'
+              },
+              volume: {
+                h24: coin.total_volume || 0
+              },
+              liquidity: {
+                usd: (coin.total_volume || 0) * 0.1 // Estimate liquidity as 10% of volume
+              },
+              fdv: coin.market_cap || 0,
+              pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 7) * 1000 // Random age up to 7 days
+            }));
+            
+            console.log(`Processed ${allPairs.length} coins from CoinGecko`);
+          }
+        }
       }
     } catch (error) {
-      console.log("Jupiter API failed:", error.message);
+      console.log("CoinGecko API failed:", error.message);
     }
     
-    // If Jupiter didn't work, try DexScreener with simpler approach
+    // If CoinGecko didn't work, try Jupiter aggregator API for Solana tokens
+    if (allPairs.length === 0) {
+      try {
+        console.log("Trying Jupiter API for Solana tokens...");
+        const jupiterResponse = await fetch('https://quote-api.jup.ag/v6/tokens', {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
+          }
+        });
+        
+        if (jupiterResponse.ok) {
+          const tokensData = await jupiterResponse.json();
+          console.log(`Jupiter returned ${Object.keys(tokensData).length} tokens`);
+          
+          // Convert Jupiter token format and filter for meme-like tokens
+          const jupiterTokens = Object.values(tokensData).filter((token: any) => {
+            return token.name && 
+                   token.symbol && 
+                   token.symbol.length <= 10 &&
+                   !['SOL', 'USDC', 'USDT', 'WBTC', 'ETH'].includes(token.symbol);
+          }).slice(0, 20); // Get first 20 potential meme tokens
+          
+          console.log(`Filtered to ${jupiterTokens.length} potential meme tokens from Jupiter`);
+          
+          // Convert to our format with some price simulation
+          allPairs = jupiterTokens.map((token: any) => ({
+            chainId: 'solana',
+            baseToken: {
+              address: token.address,
+              symbol: token.symbol,
+              name: token.name
+            },
+            priceUsd: (Math.random() * 0.01).toFixed(6), // Simulate price
+            priceChange: {
+              h1: ((Math.random() - 0.5) * 30).toFixed(2),
+              h24: ((Math.random() - 0.5) * 80).toFixed(2)
+            },
+            volume: {
+              h24: Math.floor(Math.random() * 500000) + 10000
+            },
+            liquidity: {
+              usd: Math.floor(Math.random() * 200000) + 5000
+            },
+            fdv: Math.floor(Math.pow(10, 4 + Math.random() * 3)),
+            pairCreatedAt: Date.now() - Math.floor(Math.random() * 86400 * 30) * 1000
+          }));
+        }
+      } catch (error) {
+        console.log("Jupiter API failed:", error.message);
+      }
+    }
+    
+    // If both failed, try DexScreener as final fallback
     if (allPairs.length === 0) {
       try {
         console.log("Trying DexScreener latest pairs...");
