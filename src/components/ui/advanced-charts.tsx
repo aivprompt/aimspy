@@ -61,7 +61,7 @@ export const RealtimeChartPanel: React.FC<ChartPanelProps> = ({ className }) => 
   const range = maxValue - minValue;
 
   const createPath = () => {
-    if (dataPoints.length < 2) return '';
+    if (dataPoints.length < 2) return 'M 0,20 L 100,20'; // Default straight line
     
     const width = 100;
     const height = 40;
