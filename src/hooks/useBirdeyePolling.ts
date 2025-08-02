@@ -32,7 +32,7 @@ export const useBirdeyePolling = () => {
 
   const fetchBirdeyeData = async () => {
     try {
-      console.log('Fetching Birdeye data...');
+      console.log('Fetching Birdeye data with updated API key...');
       
       // Create batch request for multiple tokens
       const tokenParams = memeTokenAddresses.join(',');
