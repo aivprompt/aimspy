@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.birdeye-api]
 verify_jwt = false
+
+[functions.helius-api]
+verify_jwt = false

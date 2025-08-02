@@ -32,15 +32,14 @@ export const useBirdeyePolling = () => {
 
   const fetchBirdeyeData = async () => {
     try {
-      console.log('🚀 Fetching Birdeye data with updated API key...');
+      console.log('🚀 Fetching live data with Helius API...');
       
-      // Create batch request for multiple tokens
-      const tokenParams = memeTokenAddresses.join(',');
-      const apiUrl = `https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/birdeye-api?tokens=${tokenParams}`;
-      console.log('📡 Calling API URL:', apiUrl);
+      // Try Helius first
+      const heliusUrl = `https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/helius-api`;
+      console.log('📡 Calling Helius API URL:', heliusUrl);
       
-      const response = await fetch(apiUrl);
-      console.log('📊 API Response status:', response.status);
+      const response = await fetch(heliusUrl);
+      console.log('📊 Helius API Response status:', response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -49,10 +48,10 @@ export const useBirdeyePolling = () => {
       }
 
       const data = await response.json();
-      console.log('📈 Birdeye API response:', data);
+      console.log('📈 Helius API response:', data);
 
       if (data.success && data.tokens && data.tokens.length > 0) {
-        console.log(`✅ Processing ${data.tokens.length} tokens from Birdeye`);
+        console.log(`✅ Processing ${data.tokens.length} tokens from Helius`);
         const transformedCoins: MemeCoin[] = data.tokens.map((token: BirdeyeTokenData, index: number) => ({
           address: token.address,
           symbol: token.symbol || `TOKEN${index}`,
@@ -63,7 +62,7 @@ export const useBirdeyePolling = () => {
           volume24h: token.volume24h || 0,
           marketCap: token.marketCap || 0,
           liquidity: token.liquidity || 0,
-          age: Math.random() * 86400, // Random age since Birdeye doesn't provide this
+          age: Math.floor(Math.random() * 86400 * 2) + 3600, // 1 hour to 2 days (fresh!)
           holders: {
             total: Math.floor(Math.random() * 5000) + 500,
             data: []
@@ -78,13 +77,13 @@ export const useBirdeyePolling = () => {
         setCoins(transformedCoins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`🎉 Updated ${transformedCoins.length} coins from Birdeye LIVE DATA!`);
+        console.log(`🎉 Updated ${transformedCoins.length} coins from Helius LIVE DATA!`);
       } else {
-        console.warn('⚠️ Birdeye API returned 0 tokens, loading fallback data');
-        throw new Error('No valid token data from Birdeye');
+        console.warn('⚠️ Helius API returned 0 tokens, loading fallback data');
+        throw new Error('No valid token data from Helius');
       }
     } catch (error) {
-      console.error('💥 Error fetching Birdeye data:', error);
+      console.error('💥 Error fetching Helius data:', error);
       console.log('🔄 Loading fallback data instead...');
       await loadFallbackData();
     }
@@ -129,12 +128,12 @@ export const useBirdeyePolling = () => {
     }
   };
 
-  // Start polling
+  // Start polling with Helius
   useEffect(() => {
-    console.log('🚀 Starting Birdeye polling hook...');
+    console.log('🚀 Starting Helius polling hook...');
     
     // Initial fetch
-    console.log('🔄 Triggering initial fetch...');
+    console.log('🔄 Triggering initial fetch with Helius...');
     fetchBirdeyeData();
 
     // Set up polling every 30 seconds to avoid rate limiting
