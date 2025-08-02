@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { MemeCoin } from '@/types/meme-coin';
 
+console.log('🚨 HELIUS POLLING MODULE LOADED - THIS SHOULD SHOW IN CONSOLE 🚨');
+
 interface BirdeyeTokenData {
   address: string;
   symbol: string;
@@ -14,6 +16,8 @@ interface BirdeyeTokenData {
 }
 
 export const useBirdeyePolling = () => {
+  console.log('🚨🚨🚨 USING HELIUS POLLING HOOK - VERSION 2.0 🚨🚨🚨');
+  
   const [coins, setCoins] = useState<MemeCoin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
