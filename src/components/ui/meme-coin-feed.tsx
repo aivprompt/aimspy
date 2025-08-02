@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CoinDetailsPopup } from '@/components/ui/coin-details-popup';
 import { cn } from '@/lib/utils';
+import { useLiveMemeCoinFeed } from '@/hooks/useLiveMemeCoinFeed';
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -10,7 +11,9 @@ import {
   DollarSign,
   BarChart3,
   Users,
-  Clock
+  Clock,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import type { MemeCoin } from '@/types/meme-coin';
 
@@ -19,56 +22,10 @@ interface MemeCoinFeedProps {
 }
 
 export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
-  const [coins, setCoins] = useState<MemeCoin[]>([]);
   const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
-
-  useEffect(() => {
-    // Generate mock meme coin data
-    const generateMockCoins = (): MemeCoin[] => {
-      const symbols = ['PEPE', 'DOGE', 'SHIB', 'FLOKI', 'BONK', 'WIF', 'POPCAT', 'BRETT'];
-      return symbols.map((symbol, i) => {
-        const basePrice = Math.random() * 1;
-        const marketCap = Math.random() * 500000000;
-        return {
-          address: `${symbol}Address${i}`,
-          symbol,
-          name: `${symbol} Token`,
-          marketCap,
-          price: basePrice,
-          priceChange1h: (Math.random() - 0.5) * 30,
-          priceChange24h: (Math.random() - 0.5) * 100,
-          volume24h: Math.random() * 25000000,
-          liquidity: Math.random() * 5000000,
-          age: Math.random() * 1296000, // Up to 15 days
-          holders: {
-            total: Math.floor(Math.random() * 5000) + 500,
-            data: []
-          },
-          legitScore: Math.random() * 10,
-          riskScore: Math.random() * 10,
-          rewardScore: Math.random() * 10,
-          dexScreenerUrl: `https://dexscreener.com/solana/${symbol.toLowerCase()}`
-        };
-      });
-    };
-
-    setCoins(generateMockCoins());
-
-    const interval = setInterval(() => {
-      setCoins(prev => 
-        prev.map(coin => ({
-          ...coin,
-          price: Math.max(0.001, coin.price + (Math.random() - 0.5) * 0.1),
-          priceChange1h: (Math.random() - 0.5) * 30,
-          priceChange24h: (Math.random() - 0.5) * 100,
-          volume24h: Math.max(100000, coin.volume24h + (Math.random() - 0.5) * 5000000)
-        }))
-      );
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
+  
+  const { coins, isConnected, connectionStatus } = useLiveMemeCoinFeed();
 
   const formatMoney = (amount: number): string => {
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
@@ -97,9 +54,23 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
     <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
-          <Zap className="h-4 w-4 text-primary animate-pulse" />
+          {isConnected ? (
+            <Wifi className="h-4 w-4 text-green-500" />
+          ) : (
+            <WifiOff className="h-4 w-4 text-red-500" />
+          )}
           Live Meme Coin Feed
-          <Badge variant="outline" className="ml-auto animate-pulse">LIVE</Badge>
+          <Badge 
+            variant="outline" 
+            className={cn("ml-auto", {
+              "text-green-500 border-green-500": connectionStatus === 'live',
+              "text-yellow-500 border-yellow-500": connectionStatus === 'connected',
+              "text-red-500 border-red-500": connectionStatus === 'error',
+              "text-gray-500 border-gray-500": connectionStatus === 'disconnected'
+            })}
+          >
+            {connectionStatus.toUpperCase()}
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2 max-h-96 overflow-y-auto">
