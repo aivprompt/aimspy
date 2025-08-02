@@ -59,7 +59,7 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
           ) : (
             <WifiOff className="h-4 w-4 text-red-500" />
           )}
-          Live Meme Coin Feed
+          🚨 HELIUS INTEGRATION TEST 🚨 Live Meme Coin Feed
           <Badge 
             variant="outline" 
             className={cn("ml-auto", {
