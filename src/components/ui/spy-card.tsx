@@ -27,7 +27,10 @@ export const SpyCard: React.FC<SpyCardProps> = ({
   const formatMoney = (amount: number) => {
     if (amount >= 1000000) return `$${(amount / 1000000).toFixed(2)}M`;
     if (amount >= 1000) return `$${(amount / 1000).toFixed(1)}K`;
-    return `$${amount.toFixed(2)}`;
+    if (amount >= 1) return `$${amount.toFixed(2)}`;
+    if (amount >= 0.01) return `$${amount.toFixed(4)}`;
+    if (amount >= 0.000001) return `$${amount.toFixed(8)}`;
+    return `$${amount.toExponential(3)}`;
   };
 
   const formatAge = (seconds: number) => {

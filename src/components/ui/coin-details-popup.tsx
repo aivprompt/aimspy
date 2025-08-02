@@ -35,7 +35,10 @@ export const CoinDetailsPopup: React.FC<CoinDetailsPopupProps> = ({
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
     if (amount >= 1e6) return `$${(amount / 1e6).toFixed(2)}M`;
     if (amount >= 1e3) return `$${(amount / 1e3).toFixed(1)}K`;
-    return `$${amount.toFixed(2)}`;
+    if (amount >= 1) return `$${amount.toFixed(2)}`;
+    if (amount >= 0.01) return `$${amount.toFixed(4)}`;
+    if (amount >= 0.000001) return `$${amount.toFixed(8)}`;
+    return `$${amount.toExponential(3)}`;
   };
 
   const formatAge = (ageInSeconds: number): string => {
