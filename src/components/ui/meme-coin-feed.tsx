@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CoinDetailsPopup } from '@/components/ui/coin-details-popup';
 import { cn } from '@/lib/utils';
-import { useBirdeyePolling } from '@/hooks/useBirdeyePolling';
+import { useBirdeyePolling } from '@/hooks/useHeliusPolling';
 import { 
   TrendingUp, 
   TrendingDown, 
