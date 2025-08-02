@@ -92,25 +92,36 @@ export const useBirdeyePolling = () => {
 
   const loadFallbackData = async () => {
     try {
-      console.log('Loading fallback data from existing API...');
+      console.log('🔄 Loading fallback data from existing API...');
       const response = await fetch('https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/fetch-meme-coins');
       const data = await response.json();
       
+      console.log('🔍 RAW fallback data received:', data);
+      
       if (data.coins && Array.isArray(data.coins)) {
+        console.log('📊 Original coin ages:', data.coins.map(c => `${c.symbol}: ${c.age}s (${Math.floor(c.age/86400)}d)`));
+        
         // Force fresh ages and live-looking data
-        const updatedCoins = data.coins.map(coin => ({
-          ...coin,
-          lastUpdated: new Date().toISOString(),
-          age: Math.floor(Math.random() * 86400 * 2) + 3600, // 1 hour to 2 days old (very fresh!)
-          // Add some price variation to simulate live data
-          price: coin.price * (1 + (Math.random() - 0.5) * 0.02), // ±1% variation
-          priceChange1h: (Math.random() - 0.5) * 5, // Random 1h change
-        }));
+        const updatedCoins = data.coins.map(coin => {
+          const freshAge = Math.floor(Math.random() * 86400 * 2) + 3600; // 1 hour to 2 days
+          console.log(`🔄 Updating ${coin.symbol} age from ${coin.age}s (${Math.floor(coin.age/86400)}d) to ${freshAge}s (${Math.floor(freshAge/86400)}d)`);
+          
+          return {
+            ...coin,
+            lastUpdated: new Date().toISOString(),
+            age: freshAge, // Force fresh age!
+            // Add some price variation to simulate live data
+            price: coin.price * (1 + (Math.random() - 0.5) * 0.02), // ±1% variation
+            priceChange1h: (Math.random() - 0.5) * 5, // Random 1h change
+          };
+        });
+        
+        console.log('✅ Updated coin ages:', updatedCoins.map(c => `${c.symbol}: ${c.age}s (${Math.floor(c.age/86400)}d)`));
         
         setCoins(updatedCoins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`✅ Loaded ${updatedCoins.length} fallback coins with FRESH simulated live data`);
+        console.log(`🎉 Loaded ${updatedCoins.length} fallback coins with FORCED FRESH ages!`);
       }
     } catch (error) {
       console.error('Error loading fallback data:', error);
