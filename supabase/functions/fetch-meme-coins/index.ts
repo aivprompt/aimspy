@@ -356,7 +356,7 @@ function generateRealisticDemoData() {
 
   return realisticTokens.map((token, index) => {
     const now = Date.now();
-    const ageInSeconds = Math.floor(Math.random() * 86400 * 30) + 3600; // 1 hour to 30 days old
+    const ageInSeconds = Math.floor(Math.random() * 86400 * 7) + 3600; // 1 hour to 7 days old (fresh!)
     const marketCapVariation = 0.8 + (Math.random() * 0.4); // 80% to 120% of base
     
     // Create realistic price with small variations from base price
