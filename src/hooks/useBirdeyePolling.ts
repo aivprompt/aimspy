@@ -51,7 +51,7 @@ export const useBirdeyePolling = () => {
       const data = await response.json();
       console.log('📈 Birdeye API response:', data);
 
-      if (data.success && data.tokens) {
+      if (data.success && data.tokens && data.tokens.length > 0) {
         console.log(`✅ Processing ${data.tokens.length} tokens from Birdeye`);
         const transformedCoins: MemeCoin[] = data.tokens.map((token: BirdeyeTokenData, index: number) => ({
           address: token.address,
@@ -80,7 +80,7 @@ export const useBirdeyePolling = () => {
         setIsLoading(false);
         console.log(`🎉 Updated ${transformedCoins.length} coins from Birdeye LIVE DATA!`);
       } else {
-        console.warn('⚠️ Birdeye API returned no tokens, using fallback data');
+        console.warn('⚠️ Birdeye API returned 0 tokens, loading fallback data');
         throw new Error('No valid token data from Birdeye');
       }
     } catch (error) {
@@ -116,12 +116,12 @@ export const useBirdeyePolling = () => {
     console.log('🔄 Triggering initial fetch...');
     fetchBirdeyeData();
 
-    // Set up polling every 3 seconds for testing
-    console.log('⏱️ Setting up 3-second polling interval...');
+    // Set up polling every 30 seconds to avoid rate limiting
+    console.log('⏱️ Setting up 30-second polling interval...');
     intervalRef.current = setInterval(() => {
       console.log('🔄 Interval triggered - fetching data...');
       fetchBirdeyeData();
-    }, 3000);
+    }, 30000);
 
     return () => {
       if (intervalRef.current) {
