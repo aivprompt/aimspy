@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import CryptoBubbles from "@/components/ui/crypto-bubbles";
 import { 
   Zap, 
   Brain, 
@@ -41,20 +42,8 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="relative">
-          
-          {/* Hero Video */}
-          <div>
-            <video 
-              src="/AIMS (1).mp4" 
-              autoPlay
-              muted
-              loop
-              playsInline
-              className="w-full h-auto"
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
+          {/* Crypto Bubbles */}
+          <CryptoBubbles />
         </div>
         
         <div className="relative mx-auto max-w-7xl text-center py-20 px-4 sm:px-6 lg:px-8">
