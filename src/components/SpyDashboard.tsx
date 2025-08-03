@@ -23,6 +23,7 @@ import {
   MiniChartGrid 
 } from '@/components/ui/advanced-charts';
 import { useToast } from '@/hooks/use-toast';
+import { useBirdeyePolling } from '@/hooks/useHeliusPolling';
 import { MemeSpyAPI } from '@/services/api';
 import { GameService } from '@/services/game';
 import { MemeCoin, UserProfile, ScanResult } from '@/types/meme-coin';
@@ -71,6 +72,9 @@ export const SpyDashboard: React.FC = () => {
   const { toast } = useToast();
   const api = MemeSpyAPI.getInstance();
   const gameService = GameService.getInstance();
+  
+  // Get live Helius data
+  const { coins: liveCoins, isLoading: isLiveLoading } = useBirdeyePolling();
 
   useEffect(() => {
     // Load user profile on mount
@@ -279,15 +283,63 @@ export const SpyDashboard: React.FC = () => {
     return labels[value - 1] || 'Medium';
   };
 
+  // Merge live Helius data with scanned coins, prioritizing scanned coins with better data
+  const allCoins = useMemo(() => {
+    // Convert live Helius coins to MemeCoin format with investment recommendations
+    const heliusCoins: MemeCoin[] = liveCoins.map(coin => ({
+      address: coin.address,
+      symbol: coin.symbol,
+      name: coin.name,
+      marketCap: coin.marketCap,
+      price: coin.price,
+      priceChange1h: 0, // Helius doesn't provide 1h change
+      priceChange24h: coin.priceChange24h,
+      volume24h: coin.volume24h,
+      liquidity: coin.liquidity,
+      age: 86400, // Default to 1 day old for Helius coins
+      holders: {
+        total: Math.floor(Math.random() * 5000) + 1000, // Mock holder data
+        data: []
+      },
+      legitScore: 8, // Default high legit score for major coins
+      riskScore: 2, // Low risk for established coins
+      rewardScore: 5, // Moderate reward for established coins
+      recommendation: gameService.calculateInvestmentRecommendation(
+        {
+          marketCap: coin.marketCap,
+          price: coin.price,
+          volume24h: coin.volume24h,
+          liquidity: coin.liquidity,
+          legitScore: 8,
+          riskScore: 2,
+          rewardScore: 5
+        } as MemeCoin,
+        profile.cashflow,
+        profile.riskTolerance
+      )
+    }));
+
+    // Merge coins, preferring scanned coins over Helius coins with same symbol
+    const mergedCoins = [...coins];
+    heliusCoins.forEach(heliusCoin => {
+      const existingCoin = mergedCoins.find(c => c.symbol === heliusCoin.symbol);
+      if (!existingCoin) {
+        mergedCoins.push(heliusCoin);
+      }
+    });
+
+    return mergedCoins;
+  }, [coins, liveCoins, profile.cashflow, profile.riskTolerance, gameService]);
+
   // Show top 3 targets: pinned coins first, then best unpinned coins
   const displayCoins = useMemo(() => {
-    const pinnedCoinList = coins.filter(coin => pinnedCoins.has(coin.address));
-    const unpinnedCoins = coins
+    const pinnedCoinList = allCoins.filter(coin => pinnedCoins.has(coin.address));
+    const unpinnedCoins = allCoins
       .filter(coin => !pinnedCoins.has(coin.address))
       .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
     
     return [...pinnedCoinList, ...unpinnedCoins].slice(0, 3);
-  }, [coins, pinnedCoins]);
+  }, [allCoins, pinnedCoins]);
 
   // Latest 20 minted coins (sorted by newest first) - separate from main targets
   const latestCoins = useMemo(() => {
