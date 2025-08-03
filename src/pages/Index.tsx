@@ -42,13 +42,18 @@ const Index = () => {
       <section className="relative overflow-hidden">
         <div className="relative">
           
-          {/* Video Placeholder */}
+          {/* Hero Video */}
           <div>
-            <img 
-              src="/lovable-uploads/d9771f59-3d9c-476a-8814-f520266907b8.png" 
-              alt="Meme Coin Ecosystem - Solana Network" 
+            <video 
+              src="/AIMS (1).mp4" 
+              autoPlay
+              muted
+              loop
+              playsInline
               className="w-full h-auto"
-            />
+            >
+              Your browser does not support the video tag.
+            </video>
           </div>
         </div>
         
