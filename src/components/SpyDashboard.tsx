@@ -54,7 +54,8 @@ import {
   Radar,
   Monitor,
   Eye,
-  Settings
+  Settings,
+  Flame
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -372,50 +373,88 @@ export const SpyDashboard: React.FC = () => {
           <div className="lg:col-span-3 space-y-4">
             <SolanaNetworkPanel />
             
-            {/* Top 10 Newest Coins Panel */}
+            {/* Live Meme Coin Activity Panel */}
             <Card className="spy-border bg-card/50 backdrop-blur-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <Zap className="h-4 w-4 text-primary animate-pulse" />
-                  Top 10 Newest Coins
-                  <Badge variant="outline" className="ml-auto">Live</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {top10NewestCoins.length > 0 ? (
-                  <div className="space-y-2 max-h-80 overflow-y-auto">
-                    {top10NewestCoins.map((coin, index) => (
-                      <div
-                        key={coin.address}
-                        className="flex items-center justify-between p-2 rounded spy-border bg-background/30 hover:bg-background/50 transition-colors cursor-pointer"
-                        onClick={() => handleSelectCoinFromMints(coin)}
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-semibold truncate">{coin.symbol}</p>
-                              <p className="text-xs text-muted-foreground truncate">{coin.name}</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-mono">{formatMoney(coin.price)}</p>
-                          <p className={cn(
-                            "text-xs font-semibold",
-                            coin.priceChange24h >= 0 ? "text-green-500" : "text-red-500"
-                          )}>
-                            {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h.toFixed(1)}%
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    Live Meme Coin Activity
                   </div>
-                ) : (
-                  <div className="text-center text-muted-foreground py-4">
-                    <p className="text-sm">No new coins available</p>
+                  <Badge className="spy-gradient animate-pulse">LIVE</Badge>
+                </CardTitle>
+                
+                {/* Activity Temperature Indicator */}
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-muted-foreground">Cool</span>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-muted-foreground">Hot</span>
+                    <Flame className="h-3 w-3 text-orange-500" />
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-3">
+                {/* Hottest Coin Display */}
+                {top10NewestCoins.length > 0 && (
+                  <div className="border rounded-lg p-3 bg-gradient-to-r from-red-500/20 to-orange-500/20 border-red-500/30">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Hottest Coin</p>
+                        <p className="font-bold text-lg text-red-500">{top10NewestCoins[0].symbol}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Age</p>
+                        <p className="text-sm font-semibold">{Math.floor(top10NewestCoins[0].age / 60)}m</p>
+                      </div>
+                    </div>
                   </div>
                 )}
+
+                {/* Latest 10 Minted Coins List */}
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-muted-foreground border-b pb-1">Latest Mints (Last 10)</h4>
+                  {top10NewestCoins.length > 0 ? (
+                    <div className="space-y-1 max-h-64 overflow-y-auto">
+                      {top10NewestCoins.map((coin, index) => {
+                        const ageMinutes = Math.floor(coin.age / 60);
+                        const ageHours = Math.floor(coin.age / 3600);
+                        const displayAge = ageHours > 0 ? `${ageHours}h` : `${ageMinutes}m`;
+                        
+                        return (
+                          <div
+                            key={coin.address}
+                            className="flex items-center justify-between p-2 rounded hover:bg-background/50 transition-colors cursor-pointer border spy-border"
+                            onClick={() => handleSelectCoinFromMints(coin)}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs font-mono text-muted-foreground w-6">#{index + 1}</span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm font-semibold truncate">{coin.symbol}</p>
+                                <p className="text-xs text-muted-foreground truncate">{coin.name}</p>
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-xs text-muted-foreground">Minted</p>
+                              <p className="text-sm font-bold text-green-500">{displayAge} ago</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground py-4">
+                      <p className="text-sm">Waiting for new mints...</p>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
             
