@@ -73,8 +73,8 @@ export const SpyDashboard: React.FC = () => {
   const api = MemeSpyAPI.getInstance();
   const gameService = GameService.getInstance();
   
-  // Get live Helius data
-  const { coins: liveCoins, isLoading: isLiveLoading } = useBirdeyePolling();
+  // Get live Helius data with safe defaults
+  const { coins: liveCoins = [], isLoading: isLiveLoading } = useBirdeyePolling();
 
   useEffect(() => {
     // Load user profile on mount
@@ -265,8 +265,12 @@ export const SpyDashboard: React.FC = () => {
 
   // Merge live Helius data with scanned coins, prioritizing scanned coins with better data
   const allCoins = useMemo(() => {
+    // Ensure we have valid arrays to work with
+    const safeCoins = coins || [];
+    const safeLiveCoins = liveCoins || [];
+    
     // Convert live Helius coins to MemeCoin format with investment recommendations
-    const heliusCoins: MemeCoin[] = liveCoins.map(coin => ({
+    const heliusCoins: MemeCoin[] = safeLiveCoins.map(coin => ({
       address: coin.address,
       symbol: coin.symbol,
       name: coin.name,
@@ -300,7 +304,7 @@ export const SpyDashboard: React.FC = () => {
     }));
 
     // Merge coins, preferring scanned coins over Helius coins with same symbol
-    const mergedCoins = [...coins];
+    const mergedCoins = [...safeCoins];
     heliusCoins.forEach(heliusCoin => {
       const existingCoin = mergedCoins.find(c => c.symbol === heliusCoin.symbol);
       if (!existingCoin) {
@@ -313,8 +317,9 @@ export const SpyDashboard: React.FC = () => {
 
   // Show top 3 targets: pinned coins first, then best unpinned coins
   const displayCoins = useMemo(() => {
-    const pinnedCoinList = allCoins.filter(coin => pinnedCoins.has(coin.address));
-    const unpinnedCoins = allCoins
+    const safeAllCoins = allCoins || [];
+    const pinnedCoinList = safeAllCoins.filter(coin => pinnedCoins.has(coin.address));
+    const unpinnedCoins = safeAllCoins
       .filter(coin => !pinnedCoins.has(coin.address))
       .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
     
@@ -323,14 +328,16 @@ export const SpyDashboard: React.FC = () => {
 
   // Get top 10 newest coins from all available data (live + scanned)
   const top10NewestCoins = useMemo(() => {
-    return allCoins
+    const safeAllCoins = allCoins || [];
+    return safeAllCoins
       .sort((a, b) => a.age - b.age) // Newest first (smaller age)
       .slice(0, 10);
   }, [allCoins]);
 
   // Latest 20 minted coins (sorted by newest first) - separate from main targets
   const latestCoins = useMemo(() => {
-    return allCoins
+    const safeAllCoins = allCoins || [];
+    return safeAllCoins
       .sort((a, b) => a.age - b.age) // Newest first (smaller age)
       .slice(3, 23); // Skip first 3 (which are main targets) and take next 20
   }, [allCoins]);
