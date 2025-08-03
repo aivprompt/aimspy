@@ -56,9 +56,30 @@ export const RealtimeChartPanel: React.FC<ChartPanelProps> = ({ className }) => 
     return () => clearInterval(interval);
   }, [currentValue]);
 
-  const maxValue = Math.max(...dataPoints.map(p => p.value));
-  const minValue = Math.min(...dataPoints.map(p => p.value));
-  const range = maxValue - minValue;
+  // FIX: Early return for empty data to prevent calculations on empty array
+  if (dataPoints.length === 0) {
+    return (
+      <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center gap-2 text-sm">
+            <Activity className="h-4 w-4 text-primary animate-pulse" />
+            Real-time Analytics
+            <Badge variant="outline" className="ml-auto">Live</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center text-muted-foreground">Loading data...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // FIX: Use reduce for max/min with finite number checks and safe defaults
+  const maxValue = dataPoints.reduce((max, p) => Math.max(max, Number.isFinite(p.value) ? p.value : 0), -Infinity);
+  const minValue = dataPoints.reduce((min, p) => Math.min(min, Number.isFinite(p.value) ? p.value : 0), Infinity);
+  const safeMax = Number.isFinite(maxValue) ? maxValue : 0;
+  const safeMin = Number.isFinite(minValue) ? minValue : 0;
+  const range = safeMax - safeMin || 1; // FIX: Prevent division by zero (flat line)
 
   const createPath = () => {
     if (dataPoints.length < 2) return 'M 0,20 L 100,20'; // Default straight line
@@ -68,7 +89,9 @@ export const RealtimeChartPanel: React.FC<ChartPanelProps> = ({ className }) => 
     
     const points = dataPoints.map((point, index) => {
       const x = (index / (dataPoints.length - 1)) * width;
-      const y = height - ((point.value - minValue) / range) * height;
+      // FIX: Use safe range and safe values; default y to middle if invalid
+      const normalized = (point.value - safeMin) / range;
+      const y = Number.isFinite(normalized) ? height - normalized * height : height / 2;
       return `${x},${y}`;
     });
 
@@ -122,7 +145,9 @@ export const RealtimeChartPanel: React.FC<ChartPanelProps> = ({ className }) => 
             {/* Animated dots */}
             {dataPoints.slice(-5).map((point, index) => {
               const x = ((dataPoints.length - 5 + index) / (dataPoints.length - 1)) * 100;
-              const y = 40 - ((point.value - minValue) / range) * 40;
+              // FIX: Use safe values and add finite check for y
+              const normalized = (point.value - safeMin) / range;
+              const y = Number.isFinite(normalized) ? 40 - normalized * 40 : 20; // Default to middle
               return (
                 <circle
                   key={point.timestamp}
@@ -139,15 +164,19 @@ export const RealtimeChartPanel: React.FC<ChartPanelProps> = ({ className }) => 
 
         <div className="grid grid-cols-3 gap-2 text-xs">
           <div className="text-center">
-            <div className="font-mono text-green-500">{Math.round(maxValue)}</div>
+            {/* FIX: Use safe values and cast to string after round */}
+            <div className="font-mono text-green-500">{String(Math.round(safeMax))}</div>
             <div className="text-muted-foreground">Peak</div>
           </div>
           <div className="text-center">
-            <div className="font-mono">{Math.round((maxValue + minValue) / 2)}</div>
+            {/* FIX: Handle NaN in avg; cast to string */}
+            <div className="font-mono">
+              {String(Math.round(Number.isFinite((safeMax + safeMin) / 2) ? (safeMax + safeMin) / 2 : 0))}
+            </div>
             <div className="text-muted-foreground">Avg</div>
           </div>
           <div className="text-center">
-            <div className="font-mono text-red-500">{Math.round(minValue)}</div>
+            <div className="font-mono text-red-500">{String(Math.round(safeMin))}</div>
             <div className="text-muted-foreground">Low</div>
           </div>
         </div>
