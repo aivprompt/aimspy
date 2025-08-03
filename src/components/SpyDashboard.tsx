@@ -341,12 +341,19 @@ export const SpyDashboard: React.FC = () => {
     return [...pinnedCoinList, ...unpinnedCoins].slice(0, 3);
   }, [allCoins, pinnedCoins]);
 
+  // Get top 10 newest coins from all available data (live + scanned)
+  const top10NewestCoins = useMemo(() => {
+    return allCoins
+      .sort((a, b) => a.age - b.age) // Newest first (smaller age)
+      .slice(0, 10);
+  }, [allCoins]);
+
   // Latest 20 minted coins (sorted by newest first) - separate from main targets
   const latestCoins = useMemo(() => {
-    return [...coins]
+    return allCoins
       .sort((a, b) => a.age - b.age) // Newest first (smaller age)
       .slice(3, 23); // Skip first 3 (which are main targets) and take next 20
-  }, [coins]);
+  }, [allCoins]);
 
   const topCoins = displayCoins
     .filter(c => c.recommendation?.shouldInvest)
@@ -377,7 +384,54 @@ export const SpyDashboard: React.FC = () => {
           {/* Left Column - System Monitoring */}
           <div className="lg:col-span-3 space-y-4">
             <SolanaNetworkPanel />
-            <SystemMonitorPanel />
+            
+            {/* Top 10 Newest Coins Panel */}
+            <Card className="spy-border bg-card/50 backdrop-blur-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Zap className="h-4 w-4 text-primary animate-pulse" />
+                  Top 10 Newest Coins
+                  <Badge variant="outline" className="ml-auto">Live</Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {top10NewestCoins.length > 0 ? (
+                  <div className="space-y-2 max-h-80 overflow-y-auto">
+                    {top10NewestCoins.map((coin, index) => (
+                      <div
+                        key={coin.address}
+                        className="flex items-center justify-between p-2 rounded spy-border bg-background/30 hover:bg-background/50 transition-colors cursor-pointer"
+                        onClick={() => handleSelectCoinFromMints(coin)}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-mono text-muted-foreground">#{index + 1}</span>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm font-semibold truncate">{coin.symbol}</p>
+                              <p className="text-xs text-muted-foreground truncate">{coin.name}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-mono">{formatMoney(coin.price)}</p>
+                          <p className={cn(
+                            "text-xs font-semibold",
+                            coin.priceChange24h >= 0 ? "text-green-500" : "text-red-500"
+                          )}>
+                            {coin.priceChange24h >= 0 ? "+" : ""}{coin.priceChange24h.toFixed(1)}%
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center text-muted-foreground py-4">
+                    <p className="text-sm">No new coins available</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
             <SecurityStatusPanel />
           </div>
 
