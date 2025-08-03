@@ -35,29 +35,6 @@ export interface MemeCoin {
 export interface UserProfile {
   cashflow: number;
   riskTolerance: number; // 1-5 scale
-  spyPoints: number;
-  level: number;
-  badges: Badge[];
-  totalScanned: number;
-}
-
-export interface Badge {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  earned: boolean;
-  earnedAt?: Date;
-}
-
-export interface Quest {
-  id: string;
-  name: string;
-  description: string;
-  target: number;
-  current: number;
-  reward: number; // spy points
-  completed: boolean;
 }
 
 export interface LeaderboardEntry {

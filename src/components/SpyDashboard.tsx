@@ -80,11 +80,6 @@ export const SpyDashboard: React.FC = () => {
     // Load user profile on mount
     const savedProfile = gameService.loadProfile();
     setProfile(savedProfile);
-    
-    // Auto-scan on first load
-    if (savedProfile.totalScanned === 0) {
-      handleScan();
-    }
   }, []);
 
   const handleProfileUpdate = (updates: Partial<UserProfile>) => {
@@ -127,21 +122,9 @@ export const SpyDashboard: React.FC = () => {
       };
       setScanResult(result);
 
-      // Update profile
-      const updatedProfile = {
-        ...profile,
-        totalScanned: profile.totalScanned + enrichedCoins.length
-      };
-
-      // Award points and check badges
-      const profileWithPoints = gameService.awardPoints(updatedProfile, 25, 'Completed scan');
-      const finalProfile = gameService.checkAndAwardBadges(profileWithPoints, enrichedCoins);
-      
-      setProfile(finalProfile);
-
       toast({
         title: "✅ Scan Complete",
-        description: `Found ${enrichedCoins.length} meme coins. +25 Spy Points!`,
+        description: `Found ${enrichedCoins.length} meme coins.`,
       });
 
     } catch (error) {
@@ -157,9 +140,6 @@ export const SpyDashboard: React.FC = () => {
 
   const handleCoinScan = (coin: MemeCoin) => {
     setSelectedCoin(coin);
-    const points = 5;
-    const updatedProfile = gameService.awardPoints(profile, points, `Deep scanned ${coin.symbol}`);
-    setProfile(updatedProfile);
     
     // Show detailed scan results after 2 seconds
     setTimeout(() => {
@@ -169,7 +149,7 @@ export const SpyDashboard: React.FC = () => {
       
       toast({
         title: "🔍 Deep Scan Complete",
-        description: `Analyzed ${coin.symbol}. +${points} Spy Points!`,
+        description: `Analyzed ${coin.symbol}.`,
       });
     }, 2000);
   };
@@ -506,54 +486,36 @@ export const SpyDashboard: React.FC = () => {
               <CircularProgressPanel />
             </div>
 
-            {/* Agent Profile - Redesigned */}
+            {/* User Settings Panel */}
             <Card className="spy-border bg-card/50 backdrop-blur-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />
-                  Agent Profile
-                  <Badge className="spy-gradient ml-auto">
-                    Level {profile.level} • {profile.spyPoints} Points
-                  </Badge>
+                  <Settings className="h-5 w-5 text-primary" />
+                  Investment Settings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Available Cashflow</Label>
-                    <Input
-                      type="number"
-                      value={profile.cashflow}
-                      onChange={(e) => handleProfileUpdate({ cashflow: Number(e.target.value) })}
-                      className="spy-border bg-background/50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">
-                      Risk Tolerance: {getRiskToleranceLabel(profile.riskTolerance)}
-                    </Label>
-                    <Slider
-                      value={[profile.riskTolerance]}
-                      onValueChange={(value) => handleProfileUpdate({ riskTolerance: value[0] })}
-                      max={5}
-                      min={1}
-                      step={1}
-                      className="py-2"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Available Cashflow</Label>
+                  <Input
+                    type="number"
+                    value={profile.cashflow}
+                    onChange={(e) => handleProfileUpdate({ cashflow: Number(e.target.value) })}
+                    className="spy-border bg-background/50"
+                  />
                 </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-primary">{profile.totalScanned}</div>
-                    <div className="text-xs text-muted-foreground">Coins Scanned</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-primary">
-                      {profile.badges.filter(b => b.earned).length}
-                    </div>
-                    <div className="text-xs text-muted-foreground">Badges Earned</div>
-                  </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">
+                    Risk Tolerance: {getRiskToleranceLabel(profile.riskTolerance)}
+                  </Label>
+                  <Slider
+                    value={[profile.riskTolerance]}
+                    onValueChange={(value) => handleProfileUpdate({ riskTolerance: value[0] })}
+                    max={5}
+                    min={1}
+                    step={1}
+                    className="py-2"
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -568,31 +530,7 @@ export const SpyDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Achievements Section */}
-        {profile.badges.some(b => b.earned) && (
-          <Card className="spy-border bg-card/50 backdrop-blur-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                Achievements
-                <Badge variant="outline" className="ml-auto">
-                  {profile.badges.filter(b => b.earned).length} earned
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-2 flex-wrap">
-                {profile.badges
-                  .filter(badge => badge.earned)
-                  .map(badge => (
-                    <Badge key={badge.id} className="spy-gradient text-white">
-                      {badge.icon} {badge.name}
-                    </Badge>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Achievements Section - Remove completely */}
 
         {/* Priority Targets - Full Width */}
         {displayCoins.length > 0 && (
