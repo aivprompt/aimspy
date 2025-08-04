@@ -22,6 +22,8 @@ import {
   HeatmapPanel, 
   MiniChartGrid 
 } from '@/components/ui/advanced-charts';
+import { SentimentPanel } from '@/components/ui/sentiment-panel';
+import { WhaleAlerts } from '@/components/ui/whale-alerts';
 import { useToast } from '@/hooks/use-toast';
 import { useBirdeyePolling } from '@/hooks/useHeliusPolling';
 import { MemeSpyAPI } from '@/services/api';
@@ -570,6 +572,18 @@ export const SpyDashboard: React.FC = () => {
           {/* Right Column - Data Processing & Analytics */}
           <div className="lg:col-span-3 space-y-4">
             <MemeCoinFeed />
+            {selectedCoin && (
+              <>
+                <SentimentPanel 
+                  tokenSymbol={selectedCoin.symbol} 
+                  tokenName={selectedCoin.name} 
+                />
+                <WhaleAlerts 
+                  tokenAddress={selectedCoin.address} 
+                  holders={selectedCoin.holders?.data || []} 
+                />
+              </>
+            )}
             <DataProcessingPanel />
             <MarketOverviewPanel />
             <HeatmapPanel />
