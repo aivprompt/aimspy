@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-console.log("Helius API function started")
+console.log("Helius API function started - v2.0");
 
 serve(async (req) => {
   // Handle CORS preflight requests
