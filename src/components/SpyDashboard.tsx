@@ -344,13 +344,18 @@ export const SpyDashboard: React.FC = () => {
       .slice(0, 10);
   }, [liveCoins, allCoins]);
 
-  // Latest 20 minted coins (sorted by newest first) - separate from main targets
+  // Latest 20 minted coins - USE LIVE DATA from Helius
   const latestCoins = useMemo(() => {
+    // Use live coins if available, otherwise fall back to static data
+    if (liveCoins.length > 0) {
+      return liveCoins.slice(0, 20); // Take all live coins
+    }
+    // Fallback to static data
     const safeAllCoins = allCoins || [];
     return safeAllCoins
       .sort((a, b) => a.age - b.age) // Newest first (smaller age)
       .slice(3, 23); // Skip first 3 (which are main targets) and take next 20
-  }, [allCoins]);
+  }, [liveCoins, allCoins]);
 
   const topCoins = displayCoins
     .filter(c => c.recommendation?.shouldInvest)
