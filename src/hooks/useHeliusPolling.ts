@@ -81,13 +81,14 @@ export const useBirdeyePolling = () => {
         }));
 
         // Track token statistics
-        setTotalTokensSeen(prev => prev + transformedCoins.length);
+        const newTotal = totalTokensSeen + transformedCoins.length;
+        setTotalTokensSeen(newTotal);
         setNewTokensCount(transformedCoins.length);
         
         setCoins(transformedCoins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`🎉 NEW BATCH: ${transformedCoins.length} fresh tokens | Total seen: ${totalTokensSeen + transformedCoins.length}`);
+        console.log(`🎉 NEW BATCH: ${transformedCoins.length} fresh tokens | Total seen: ${newTotal}`);
       } else {
         console.warn('⚠️ Helius API returned 0 tokens, loading fallback data');
         throw new Error('No valid token data from Helius');

@@ -24,8 +24,18 @@ interface MemeCoinFeedProps {
 export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
   const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [isFlashing, setIsFlashing] = useState(false);
   
   const { coins, isLoading, lastUpdate, isLive, totalTokensSeen, newTokensCount } = useBirdeyePolling();
+
+  // Flash effect when new coins arrive
+  React.useEffect(() => {
+    if (newTokensCount > 0 && !isLoading) {
+      setIsFlashing(true);
+      const timer = setTimeout(() => setIsFlashing(false), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [newTokensCount, isLoading]);
 
   const formatMoney = (amount: number): string => {
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
@@ -51,7 +61,9 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
   };
 
   return (
-    <Card className={cn("spy-border bg-card/50 backdrop-blur-sm", className)}>
+    <Card className={cn("spy-border bg-card/50 backdrop-blur-sm transition-all duration-300", className, {
+      "ring-2 ring-green-500/50 bg-green-500/10": isFlashing
+    })}>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm">
           {isLive ? (
