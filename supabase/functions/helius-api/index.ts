@@ -79,9 +79,7 @@ serve(async (req) => {
             sortBy: 'created',
             sortDirection: 'desc'
           },
-          interface: 'FungibleToken',
-          burnt: false,
-          compressed: false
+          tokenType: 'fungible'  // Correct parameter for SPL tokens/meme coins
         }
       })
     });
