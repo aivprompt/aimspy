@@ -39,7 +39,7 @@ serve(async (req) => {
     let tokens = [];
     
     try {
-      // Use Helius RPC to get recent token creations
+      // Test Helius API connection first
       const rpcResponse = await fetch(`https://mainnet.helius-rpc.com/?api-key=${heliusApiKey}`, {
         method: 'POST',
         headers: {
@@ -48,9 +48,9 @@ serve(async (req) => {
         body: JSON.stringify({
           jsonrpc: '2.0',
           id: 'helius-test',
-          method: 'getRecentPrioritizationFees',
+          method: 'getAccountInfo',
           params: [
-            ['TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA']
+            'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'
           ]
         })
       });
@@ -78,8 +78,8 @@ serve(async (req) => {
               sortBy: 'created',
               sortDirection: 'desc'
             },
-            tokenType: 'fungible',
-            creatorVerified: false
+            interface: 'FungibleToken',
+            burnt: false
           }
         })
       });

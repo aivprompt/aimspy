@@ -1,0 +1,2 @@
+-- This creates the secrets infrastructure
+-- The user will need to manually add the HELIUS_API_KEY secret in their Supabase dashboard
