@@ -318,8 +318,14 @@ export const SpyDashboard: React.FC = () => {
     return mergedCoins;
   }, [coins, liveCoins, profile.cashflow, profile.riskTolerance, gameService]);
 
-  // Show top 3 targets: pinned coins first, then best unpinned coins
+  // Show top 3 targets: Use LIVE data first, then pinned coins
   const displayCoins = useMemo(() => {
+    // Prioritize live coins from Helius
+    if (liveCoins.length > 0) {
+      return liveCoins.slice(0, 3);
+    }
+    
+    // Fallback to static data if no live data
     const safeAllCoins = allCoins || [];
     const pinnedCoinList = safeAllCoins.filter(coin => pinnedCoins.has(coin.address));
     const unpinnedCoins = safeAllCoins
@@ -327,7 +333,7 @@ export const SpyDashboard: React.FC = () => {
       .sort((a, b) => (b.rewardScore - b.riskScore) - (a.rewardScore - a.riskScore));
     
     return [...pinnedCoinList, ...unpinnedCoins].slice(0, 3);
-  }, [allCoins, pinnedCoins]);
+  }, [liveCoins, allCoins, pinnedCoins]);
 
   // Get top 10 newest coins from LIVE Helius data
   const top10NewestCoins = useMemo(() => {
