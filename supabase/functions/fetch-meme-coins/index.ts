@@ -12,227 +12,51 @@ serve(async (req) => {
   try {
     console.log("Fetching live Solana meme coins...")
     
-    let allPairs: any[] = [];
-    let dataSource = 'unknown';
-    
-    // Try a simple test API first to ensure edge function networking works
+    // First try Helius for truly fresh newly minted tokens
     try {
-      console.log("=== TESTING BASIC FETCH ===");
-      const testResponse = await fetch('https://httpbin.org/json');
-      console.log(`Test API status: ${testResponse.status}`);
-      if (testResponse.ok) {
-        const testData = await testResponse.json();
-        console.log(`Test API returned data: ${!!testData}`);
-      }
-    } catch (error) {
-      console.log("Basic fetch test failed:", error.message);
-    }
-    
-    // Try DexScreener with working endpoints
-    try {
-      console.log("=== TRYING DEXSCREENER SEARCH ===");
+      console.log("=== CHECKING HELIUS FOR FRESH MINTS ===");
+      const heliusResponse = await fetch(`${Deno.env.get('SUPABASE_URL')}/functions/v1/helius-api`, {
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('SUPABASE_ANON_KEY')}`,
+        }
+      });
       
-      // Use the search endpoint with popular meme coin terms
-      const searchTerms = ['bonk', 'pepe', 'doge', 'shib', 'meme'];
-      
-      for (const term of searchTerms) {
-        try {
-          const searchResponse = await fetch(`https://api.dexscreener.com/latest/dex/search/?q=${term}`, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
-              'Accept': 'application/json'
-            }
-          });
-          
-          console.log(`DexScreener search (${term}) response status: ${searchResponse.status}`);
-          
-          if (searchResponse.ok) {
-            const searchData = await searchResponse.json();
-            if (searchData?.pairs && Array.isArray(searchData.pairs)) {
-              // Filter for Solana pairs with good metrics
-              const solanaPairs = searchData.pairs.filter((pair: any) => 
-                pair.chainId === 'solana' && 
-                pair.volume?.h24 > 5000 &&
-                pair.liquidity?.usd > 1000 &&
-                pair.baseToken?.symbol &&
-                !['SOL', 'USDC', 'USDT', 'WETH'].includes(pair.baseToken.symbol)
-              );
-              
-              allPairs.push(...solanaPairs);
-              console.log(`Search term '${term}' added ${solanaPairs.length} Solana pairs`);
-            }
-          }
-        } catch (error) {
-          console.log(`Search term '${term}' failed:`, error.message);
+      if (heliusResponse.ok) {
+        const heliusData = await heliusResponse.json();
+        console.log(`Helius returned ${heliusData.tokens?.length || 0} fresh tokens`);
+        
+        if (heliusData.tokens && heliusData.tokens.length > 0) {
+          // We have fresh tokens! Return them
+          console.log("=== RETURNING FRESH HELIUS TOKENS ===");
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              coins: heliusData.tokens,
+              timestamp: new Date().toISOString(),
+              source: 'helius-fresh-mints'
+            }),
+            {
+              headers: { 
+                ...corsHeaders, 
+                'Content-Type': 'application/json' 
+              },
+            },
+          );
         }
       }
-      
-      if (allPairs.length > 0) {
-        dataSource = 'dexscreener_search';
-        console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener search ===`);
-      }
     } catch (error) {
-      console.log("DexScreener search API failed:", error.message);
+      console.log("Helius API call failed:", error.message);
     }
     
-    // If that failed, try the pairs endpoint
-    if (allPairs.length === 0) {
-      try {
-        console.log("=== TRYING DEXSCREENER PAIRS ===");
-        
-        const pairsResponse = await fetch('https://api.dexscreener.com/latest/dex/pairs/solana', {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (compatible; MemeSpyBot/1.0)',
-          }
-        });
-        
-        console.log(`DexScreener pairs response status: ${pairsResponse.status}`);
-        
-        if (pairsResponse.ok) {
-          const pairsData = await pairsResponse.json();
-          console.log(`DexScreener pairs returned ${pairsData.pairs?.length || 0} pairs`);
-          
-          if (pairsData.pairs && pairsData.pairs.length > 0) {
-            // Take the most active pairs
-            const activePairs = pairsData.pairs
-              .filter((pair: any) => 
-                pair.baseToken && 
-                pair.volume?.h24 > 5000 &&
-                !['SOL', 'USDC', 'USDT'].includes(pair.baseToken.symbol)
-              )
-              .sort((a: any, b: any) => (b.volume?.h24 || 0) - (a.volume?.h24 || 0))
-              .slice(0, 15);
-            
-            console.log(`Found ${activePairs.length} active pairs`);
-            
-            if (activePairs.length > 0) {
-              allPairs = activePairs;
-              dataSource = 'dexscreener_solana_pairs';
-              console.log(`=== SUCCESS: Got ${allPairs.length} pairs from DexScreener Solana pairs ===`);
-            }
-          }
-        } else {
-          const errorText = await pairsResponse.text();
-          console.log(`DexScreener pairs error: ${pairsResponse.status} - ${errorText.substring(0, 200)}`);
-        }
-      } catch (error) {
-        console.log("DexScreener pairs API failed:", error.message);
-      }
-    }
-    
-    // If that didn't work, force demo data to see logs
-    if (allPairs.length === 0) {
-      console.log("=== FORCING DEMO DATA FOR TESTING ===");
-      dataSource = 'forced_demo_with_logs';
-    }
-
-    console.log(`Total pairs collected: ${allPairs.length}`);
-
-    // Remove duplicates based on baseToken address
-    const uniquePairs = allPairs.filter((pair, index, self) => 
-      index === self.findIndex(p => p.baseToken?.address === pair.baseToken?.address)
-    );
-
-    console.log(`Unique pairs after deduplication: ${uniquePairs.length}`);
-
-    // Filter for interesting meme coins with less strict criteria
-    const filteredPairs = uniquePairs.filter((pair: any) => {
-      const marketCap = pair.fdv || pair.marketCap || 0;
-      const volume = pair.volume?.h24 || 0;
-      const liquidity = pair.liquidity?.usd || 0;
-      
-      console.log(`Checking coin ${pair.baseToken?.symbol}: MC=${marketCap}, Vol=${volume}, Liq=${liquidity}`);
-      
-      const isValid = (
-        pair.baseToken && 
-        pair.baseToken.symbol &&
-        pair.baseToken.symbol !== 'SOL' &&
-        pair.baseToken.symbol !== 'USDC' &&
-        pair.baseToken.symbol !== 'USDT' &&
-        pair.baseToken.symbol !== 'BTC' &&
-        pair.baseToken.symbol !== 'ETH' &&
-        marketCap > 1000 && // Min $1k market cap
-        marketCap < 500000000 && // Increased max to $500M market cap to include more coins
-        volume > 100 // Min $100 24h volume
-      );
-      
-      console.log(`Coin ${pair.baseToken?.symbol} ${isValid ? 'PASSED' : 'FILTERED OUT'} filter`);
-      return isValid;
-    });
-
-    console.log(`Filtered pairs: ${filteredPairs.length}`);
-
-    // Sort by volume and market cap for quality
-    filteredPairs.sort((a: any, b: any) => {
-      const aScore = (a.volume?.h24 || 0) + (a.fdv || 0) * 0.1;
-      const bScore = (b.volume?.h24 || 0) + (b.fdv || 0) * 0.1;
-      return bScore - aScore;
-    });
-
-    // Process the top pairs into our format
-    const coins = filteredPairs.slice(0, 20).map((pair: any) => {
-      const ageInSeconds = pair.pairCreatedAt ? 
-        Math.floor((Date.now() - pair.pairCreatedAt) / 1000) : 
-        Math.floor(Math.random() * 86400) + 3600; // Random age if not available
-
-      const coin = {
-        address: pair.baseToken.address,
-        symbol: pair.baseToken.symbol || 'UNKNOWN',
-        name: pair.baseToken.name || pair.baseToken.symbol || 'Unknown Token',
-        marketCap: pair.fdv || pair.marketCap || 0,
-        price: parseFloat(pair.priceUsd || '0'),
-        priceChange1h: parseFloat(pair.priceChange?.h1 || '0'),
-        priceChange24h: parseFloat(pair.priceChange?.h24 || '0'),
-        volume24h: parseFloat(pair.volume?.h24 || '0'),
-        liquidity: parseFloat(pair.liquidity?.usd || '0'),
-        age: ageInSeconds,
-        holders: generateMockHolderData(), // We'll use mock holder data for now
-        legitScore: 0,
-        riskScore: 0,
-        rewardScore: 0,
-        dexScreenerUrl: pair.url
-      };
-
-      // Calculate scores
-      coin.legitScore = calculateLegitScore(coin);
-      coin.riskScore = calculateRiskScore(coin);
-      coin.rewardScore = calculateRewardScore(coin);
-
-      return coin;
-    });
-
-    console.log(`Final processed coins: ${coins.length}`);
-
-    // If we still have no coins, generate realistic demo data
-    if (coins.length === 0) {
-      console.log('=== ALL APIS FAILED - GENERATING DEMO DATA ===');
-      console.log('CoinGecko failed, Jupiter failed, DexScreener failed');
-      dataSource = 'demo_data_realistic';
-      const demoCoins = generateRealisticDemoData();
-      
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          coins: demoCoins,
-          timestamp: new Date().toISOString(),
-          source: dataSource,
-          debug: 'All APIs failed - using demo data'
-        }),
-        {
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          },
-        },
-      );
-    }
-
+    // If no fresh tokens from Helius, don't return old tokens as "fresh mints"
+    console.log("=== NO FRESH TOKENS AVAILABLE ===");
     return new Response(
       JSON.stringify({ 
         success: true, 
-        coins,
+        coins: [], // Return empty - no fresh mints available
         timestamp: new Date().toISOString(),
-        source: dataSource
+        source: 'no-fresh-mints',
+        message: 'No newly minted tokens found in the last 24 hours'
       }),
       {
         headers: { 
@@ -241,7 +65,6 @@ serve(async (req) => {
         },
       },
     );
-
   } catch (error) {
     console.error('Error fetching meme coins:', error);
     
