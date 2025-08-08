@@ -268,55 +268,47 @@ export const SpyDashboard: React.FC = () => {
 
   // Merge live Helius data with scanned coins, prioritizing scanned coins with better data
   const allCoins = useMemo(() => {
-    // Ensure we have valid arrays to work with
-    const safeCoins = coins || [];
+    // PRIORITY: Use live Helius data as primary source
     const safeLiveCoins = liveCoins || [];
+    const safeCoins = coins || [];
     
-    // Convert live Helius coins to MemeCoin format with investment recommendations
+    // Convert live Helius coins to MemeCoin format - KEEP ORIGINAL AGES!
     const heliusCoins: MemeCoin[] = safeLiveCoins.map(coin => ({
       address: coin.address,
       symbol: coin.symbol,
       name: coin.name,
       marketCap: coin.marketCap,
       price: coin.price,
-      priceChange1h: 0, // Helius doesn't provide 1h change
+      priceChange1h: coin.priceChange1h || 0,
       priceChange24h: coin.priceChange24h,
       volume24h: coin.volume24h,
       liquidity: coin.liquidity,
-      age: 86400, // Default to 1 day old for Helius coins
-      holders: {
-        total: Math.floor(Math.random() * 5000) + 1000, // Mock holder data
+      age: coin.age, // USE ACTUAL FRESH AGE FROM HELIUS!
+      holders: coin.holders || {
+        total: Math.floor(Math.random() * 5000) + 1000,
         data: []
       },
-      legitScore: 8, // Default high legit score for major coins
-      riskScore: 2, // Low risk for established coins
-      rewardScore: 5, // Moderate reward for established coins
+      legitScore: coin.legitScore || 8,
+      riskScore: coin.riskScore || 2,
+      rewardScore: coin.rewardScore || 5,
       recommendation: gameService.calculateInvestmentRecommendation(
         {
           marketCap: coin.marketCap,
           price: coin.price,
           volume24h: coin.volume24h,
           liquidity: coin.liquidity,
-          legitScore: 8,
-          riskScore: 2,
-          rewardScore: 5
+          legitScore: coin.legitScore || 8,
+          riskScore: coin.riskScore || 2,
+          rewardScore: coin.rewardScore || 5
         } as MemeCoin,
         profile.cashflow,
         profile.riskTolerance
       )
     }));
 
-    // Merge coins, preferring scanned coins over Helius coins with same symbol
-    const mergedCoins = [...safeCoins];
-    heliusCoins.forEach(heliusCoin => {
-      const existingCoin = mergedCoins.find(c => c.symbol === heliusCoin.symbol);
-      if (!existingCoin) {
-        mergedCoins.push(heliusCoin);
-      }
-    });
-
-    return mergedCoins;
-  }, [coins, liveCoins, profile.cashflow, profile.riskTolerance, gameService]);
+    // Return live coins FIRST, then add any additional scanned coins
+    return [...heliusCoins, ...safeCoins];
+  }, [liveCoins, coins, profile.cashflow, profile.riskTolerance, gameService]);
 
   // Show top 3 targets: Use LIVE data first, then pinned coins
   const displayCoins = useMemo(() => {
