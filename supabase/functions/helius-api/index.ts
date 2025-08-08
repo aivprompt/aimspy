@@ -95,9 +95,9 @@ serve(async (req) => {
         if (dasData.result?.items?.length > 0) {
           console.log(`Processing ${dasData.result.items.length} assets from Helius...`);
           
-          // Filter for very recent tokens (created in last 24 hours) and process them
+          // Filter for tokens created in last 7 days (extended window during quiet periods)
           const now = Date.now() / 1000; // Current timestamp in seconds
-          const oneDayAgo = now - (24 * 60 * 60); // 24 hours ago
+          const sevenDaysAgo = now - (7 * 24 * 60 * 60); // 7 days ago
           
           const validTokens = dasData.result.items.filter(asset => {
             // Check if asset has valid metadata and was created recently
@@ -105,9 +105,9 @@ serve(async (req) => {
                                 asset.content?.metadata?.name && 
                                 asset.content?.metadata?.symbol;
             
-            // Check if creation timestamp is recent (within last 24 hours)
+            // Check if creation timestamp is recent (within last 7 days)
             const createdAt = asset.created_at || asset.mint?.timestamp || 0;
-            const isRecent = createdAt > oneDayAgo;
+            const isRecent = createdAt > sevenDaysAgo;
             
             if (hasValidData && isRecent) {
               console.log(`Found recent token: ${asset.content.metadata.symbol} created at ${new Date(createdAt * 1000).toISOString()}`);
@@ -116,7 +116,7 @@ serve(async (req) => {
             return hasValidData && isRecent;
           }).slice(0, 15); // Take up to 15 most recent valid tokens
           
-          console.log(`Found ${validTokens.length} valid recent tokens`);
+          console.log(`Found ${validTokens.length} valid tokens from last 7 days`);
           
           for (const asset of validTokens) {
             const createdAt = asset.created_at || asset.mint?.timestamp || now;
@@ -146,7 +146,7 @@ serve(async (req) => {
 
     // Log result - do not generate mock tokens if no real tokens found
     if (tokens.length === 0) {
-      console.log('No newly created tokens found in the last 24 hours. This is normal during quiet periods.');
+      console.log('No newly created tokens found in the last 7 days. Crypto minting market may be very quiet.');
     }
 
     console.log(`Successfully fetched ${tokens.length} newly created tokens`);
