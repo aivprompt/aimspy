@@ -25,7 +25,7 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
   const [selectedCoin, setSelectedCoin] = useState<MemeCoin | null>(null);
   const [popoverOpen, setPopoverOpen] = useState(false);
   
-  const { coins, isLoading, lastUpdate, isLive } = useBirdeyePolling();
+  const { coins, isLoading, lastUpdate, isLive, totalTokensSeen, newTokensCount } = useBirdeyePolling();
 
   const formatMoney = (amount: number): string => {
     if (amount >= 1e9) return `$${(amount / 1e9).toFixed(2)}B`;
@@ -59,18 +59,35 @@ export const MemeCoinFeed: React.FC<MemeCoinFeedProps> = ({ className }) => {
           ) : (
             <WifiOff className="h-4 w-4 text-red-500" />
           )}
-          🚨 HELIUS INTEGRATION TEST 🚨 Live Meme Coin Feed
-          <Badge 
-            variant="outline" 
-            className={cn("ml-auto", {
-              "text-green-500 border-green-500": isLive,
-              "text-yellow-500 border-yellow-500": isLoading,
-              "text-red-500 border-red-500": !isLive && !isLoading
-            })}
-          >
-            {isLive ? 'LIVE' : isLoading ? 'LOADING' : 'OFFLINE'}
-          </Badge>
+          Latest Minted Tokens
+          <div className="flex items-center gap-2 ml-auto">
+            {totalTokensSeen > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {totalTokensSeen} seen
+              </Badge>
+            )}
+            <Badge 
+              variant="outline" 
+              className={cn("", {
+                "text-green-500 border-green-500": isLive,
+                "text-yellow-500 border-yellow-500": isLoading,
+                "text-red-500 border-red-500": !isLive && !isLoading
+              })}
+            >
+              {isLive ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  LIVE
+                </span>
+              ) : isLoading ? 'LOADING' : 'OFFLINE'}
+            </Badge>
+          </div>
         </CardTitle>
+        {lastUpdate && (
+          <div className="text-xs text-muted-foreground">
+            Last update: {lastUpdate.toLocaleTimeString()}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-2 max-h-96 overflow-y-auto">
         {coins.map((coin, index) => (

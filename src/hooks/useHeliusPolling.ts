@@ -16,11 +16,13 @@ interface BirdeyeTokenData {
 }
 
 export const useBirdeyePolling = () => {
-  console.log('🚨🚨🚨 USING HELIUS POLLING HOOK - VERSION 2.0 🚨🚨🚨');
+  console.log('🚨🚨🚨 USING HELIUS POLLING HOOK - VERSION 3.0 🚨🚨🚨');
   
   const [coins, setCoins] = useState<MemeCoin[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [totalTokensSeen, setTotalTokensSeen] = useState(0);
+  const [newTokensCount, setNewTokensCount] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Popular Solana meme coin addresses
@@ -78,10 +80,14 @@ export const useBirdeyePolling = () => {
           lastUpdated: new Date().toISOString()
         }));
 
+        // Track token statistics
+        setTotalTokensSeen(prev => prev + transformedCoins.length);
+        setNewTokensCount(transformedCoins.length);
+        
         setCoins(transformedCoins);
         setLastUpdate(new Date());
         setIsLoading(false);
-        console.log(`🎉 Updated ${transformedCoins.length} coins from Helius LIVE DATA!`);
+        console.log(`🎉 NEW BATCH: ${transformedCoins.length} fresh tokens | Total seen: ${totalTokensSeen + transformedCoins.length}`);
       } else {
         console.warn('⚠️ Helius API returned 0 tokens, loading fallback data');
         throw new Error('No valid token data from Helius');
@@ -143,6 +149,8 @@ export const useBirdeyePolling = () => {
     coins,
     isLoading,
     lastUpdate,
+    totalTokensSeen,
+    newTokensCount,
     isLive: lastUpdate && (Date.now() - lastUpdate.getTime()) < 30000 // Consider live if updated within 30 seconds
   };
 };
