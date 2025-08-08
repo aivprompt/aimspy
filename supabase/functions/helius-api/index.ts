@@ -61,7 +61,8 @@ serve(async (req) => {
 
       console.log('✅ Helius API connection successful');
 
-    // Use DAS API to get newly created tokens with proper query structure
+    // Use DAS API to get newly created tokens with corrected query structure
+    console.log('🔍 Attempting DAS API call with corrected parameters...');
     const dasResponse = await fetch(`https://mainnet.helius-rpc.com/?api-key=${heliusApiKey}`, {
       method: 'POST',
       headers: {
@@ -80,24 +81,32 @@ serve(async (req) => {
           },
           interface: 'FungibleToken',
           burnt: false,
-          compressed: false,
-          supply: {
-            gt: 0 // Only tokens with actual supply
-          }
+          compressed: false
         }
       })
     });
 
+    console.log(`📊 DAS Response status: ${dasResponse.status}`);
+    
+    if (!dasResponse.ok) {
+      const errorText = await dasResponse.text();
+      console.error(`❌ DAS API error: ${dasResponse.status} - ${errorText}`);
+      throw new Error(`DAS API failed: ${dasResponse.status} - ${errorText}`);
+    }
+
       if (dasResponse.ok) {
         const dasData = await dasResponse.json();
-        console.log(`✅ Found ${dasData.result?.items?.length || 0} newly created assets`);
+        console.log(`📈 DAS Response full result:`, JSON.stringify(dasData, null, 2));
+        console.log(`✅ Found ${dasData.result?.items?.length || 0} total assets from DAS API`);
         
         if (dasData.result?.items?.length > 0) {
           console.log(`Processing ${dasData.result.items.length} assets from Helius...`);
           
-          // Filter for tokens created in last 7 days (extended window during quiet periods)
+          // Filter for tokens created in last 30 days to ensure we get some results
           const now = Date.now() / 1000; // Current timestamp in seconds
-          const sevenDaysAgo = now - (7 * 24 * 60 * 60); // 7 days ago
+          const thirtyDaysAgo = now - (30 * 24 * 60 * 60); // 30 days ago
+          
+          console.log(`🕒 Looking for tokens created after: ${new Date(thirtyDaysAgo * 1000).toISOString()}`);
           
           const validTokens = dasData.result.items.filter(asset => {
             // Check if asset has valid metadata and was created recently
@@ -105,18 +114,16 @@ serve(async (req) => {
                                 asset.content?.metadata?.name && 
                                 asset.content?.metadata?.symbol;
             
-            // Check if creation timestamp is recent (within last 7 days)
+            // Check if creation timestamp is recent (within last 30 days)
             const createdAt = asset.created_at || asset.mint?.timestamp || 0;
-            const isRecent = createdAt > sevenDaysAgo;
+            const isRecent = createdAt > thirtyDaysAgo;
             
-            if (hasValidData && isRecent) {
-              console.log(`Found recent token: ${asset.content.metadata.symbol} created at ${new Date(createdAt * 1000).toISOString()}`);
-            }
+            console.log(`🔍 Token ${asset.content?.metadata?.symbol || 'UNKNOWN'}: created=${new Date(createdAt * 1000).toISOString()}, hasValidData=${hasValidData}, isRecent=${isRecent}`);
             
             return hasValidData && isRecent;
           }).slice(0, 15); // Take up to 15 most recent valid tokens
           
-          console.log(`Found ${validTokens.length} valid tokens from last 7 days`);
+          console.log(`Found ${validTokens.length} valid tokens from last 30 days`);
           
           for (const asset of validTokens) {
             const createdAt = asset.created_at || asset.mint?.timestamp || now;
@@ -146,7 +153,7 @@ serve(async (req) => {
 
     // Log result - do not generate mock tokens if no real tokens found
     if (tokens.length === 0) {
-      console.log('No newly created tokens found in the last 7 days. Crypto minting market may be very quiet.');
+      console.log('No newly created tokens found in the last 30 days. This indicates a potential API query issue.');
     }
 
     console.log(`Successfully fetched ${tokens.length} newly created tokens`);
