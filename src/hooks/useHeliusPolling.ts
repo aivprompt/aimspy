@@ -13,6 +13,7 @@ interface BirdeyeTokenData {
   volume24h: number;
   marketCap: number;
   liquidity: number;
+  age?: number; // Age in seconds from Helius
 }
 
 export const useBirdeyePolling = () => {
@@ -68,7 +69,7 @@ export const useBirdeyePolling = () => {
           volume24h: token.volume24h || 0,
           marketCap: token.marketCap || 0,
           liquidity: token.liquidity || 0,
-          age: Math.floor(Math.random() * 86400 * 2) + 3600, // 1 hour to 2 days (fresh!)
+          age: token.age || Math.floor(Date.now() / 1000 - 3600), // Use REAL age from Helius or default to 1 hour
           holders: {
             total: Math.floor(Math.random() * 5000) + 500,
             data: []
@@ -90,35 +91,17 @@ export const useBirdeyePolling = () => {
         setIsLoading(false);
         console.log(`🎉 NEW BATCH: ${transformedCoins.length} fresh tokens | Total seen: ${newTotal}`);
       } else {
-        console.warn('⚠️ Helius API returned 0 tokens, loading fallback data');
-        throw new Error('No valid token data from Helius');
+        console.warn('⚠️ Helius API returned 0 tokens - no fresh mints available');
+        setCoins([]); // Set empty array when no fresh tokens
+        setLastUpdate(new Date());
+        setIsLoading(false);
+        console.log('✅ Updated state to show no fresh mints available');
       }
     } catch (error) {
       console.error('💥 Error fetching Helius data:', error);
-      console.log('🔄 Loading fallback data instead...');
-      await loadFallbackData();
-    }
-  };
-
-  const loadFallbackData = async () => {
-    try {
-      console.log('🔄 Loading FIXED fallback data...');
-      const response = await fetch('https://qkappowfrpsrvmxrndrx.functions.supabase.co/functions/v1/fetch-meme-coins');
-      const data = await response.json();
-      
-      console.log('🔍 FIXED fallback data received:', data);
-      
-      if (data.coins && Array.isArray(data.coins)) {
-        console.log('📊 Original coin ages:', data.coins.map(c => `${c.symbol}: ${c.age}s (${Math.floor(c.age/86400)}d)`));
-        
-        // The coins should now have fresh ages from the updated function
-        setCoins(data.coins);
-        setLastUpdate(new Date());
-        setIsLoading(false);
-        console.log(`🎉 Loaded ${data.coins.length} coins with UPDATED ages!`);
-      }
-    } catch (error) {
-      console.error('Error loading fallback data:', error);
+      console.log('🔄 Setting empty state - no fallback data');
+      setCoins([]);
+      setLastUpdate(new Date());
       setIsLoading(false);
     }
   };
